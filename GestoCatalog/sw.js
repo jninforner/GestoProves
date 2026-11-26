@@ -1,4 +1,4 @@
-// GestoCatalog 1.48.1 — service worker: només mostra els avisos al mòbil (Web Push).
+// GestoCatalog 1.48.2 — service worker: només mostra els avisos al mòbil (Web Push).
 // No guarda res a la memòria cau: l'app es carrega sempre de la xarxa.
 self.addEventListener('install',() => self.skipWaiting());
 self.addEventListener('activate',event => event.waitUntil(self.clients.claim()));
