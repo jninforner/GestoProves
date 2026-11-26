@@ -200,7 +200,7 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .invoice-card form{margin-top:10px}
 .purchase-row{border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:12px 0 0}
 .purchase-row legend{font-weight:650;padding:0 4px}
-.purchase-row.is-discarded{opacity:.6}
+.purchase-row.is-discarded > :not(.purchase-row-actions),.purchase-row.is-discarded .purchase-row-actions > :not([data-discard-row]){opacity:.6}
 .purchase-row .grid{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
 .purchase-article{grid-column:1/-1;display:grid;gap:4px;font-size:14px;color:var(--mu)}
 .article-pick{font-size:16px;color:var(--tx);display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;font-weight:600}
