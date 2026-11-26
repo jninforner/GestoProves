@@ -294,12 +294,16 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 .history-open .meta{font-size:14px}
 .history-row .order-state{margin:0;white-space:nowrap}
 .history-detail{padding:0 12px 12px}
-.history-detail>.actions{margin-top:0}
 .history-supplier{margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
 .history-supplier-head{display:flex;justify-content:space-between;align-items:center;gap:4px 8px;flex-wrap:wrap;margin-bottom:6px}
 .history-supplier-head b{font-size:16px}
 .history-supplier-head .order-state{margin:0}
-.history-supplier>.actions{margin-top:8px}
+.history-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.history-actions>button,.history-actions>.button{width:100%;min-width:0;min-height:44px;margin:0;padding:6px 8px;justify-content:center;text-align:center;white-space:normal;line-height:1.15}
+.history-actions>.wide{grid-column:1/-1}
+.history-actions>.recipient-picker{margin:0}
+.history-actions>.recipient-picker>summary{width:100%;justify-content:center}
+.history-detail>.history-actions{margin:0 0 2px}
 .sheet-name{display:block;margin-bottom:12px}
 .sheet-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
 .purchase-price{margin-bottom:4px}
