@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>GestoAdmin</title>
-<link rel="icon" type="image/png" href="./icon.png?v=1.10.1">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.10.1">
+<link rel="icon" type="image/png" href="./icon.png?v=1.11.0">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.11.0">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
 <style>/* Colors de totes les apps Gesto, en mode clar i fosc (ESTIL.md, «Colors i tipografia»).
    Font única: si canvies un color aquí, canvia a totes les apps. */
@@ -146,6 +146,7 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .order-editor label:nth-child(3),.order-editor .actions,.order-editor [data-editor-error]{grid-column:1/-1}
 
 .order-list-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:8px;min-width:0;flex:1 1 100%}
+.order-list-filters:not(:has(.list-mode)){grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .order-list-filters label{width:100%}
 .order-list-filters select{height:44px;min-height:44px}
 
@@ -156,7 +157,7 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .order-lines .order-lookup{position:sticky;top:0;z-index:4;margin:10px 0 0;padding:6px 0;background:inherit}
 .order-lines.is-searching .order-lookup{box-shadow:0 6px 8px -6px #11183140}
 .order-lines.is-searching [id^=list-]{min-height:100vh}
-.order-lines.hide-filters .order-list-filters{display:none}
+.order-lines.hide-filters .order-list-filters,.order-lines.hide-filters .list-tools{display:none}
 .order-lines .order-list-filters{margin-top:6px}
 .list-tools:not(:has(button:not([hidden]))){display:none}
 /* Cerca comuna de Nova comanda i Articles */
@@ -164,6 +165,8 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .article-lookup label{flex:1 1 auto;min-width:0}
 .article-lookup button[hidden]{display:none}
 .article-lookup button{min-height:46px}
+/* Ull «Només la comanda» a la dreta de la cerca: quadrat, només la icona. */
+.article-lookup .lookup-eye{flex:0 0 46px;width:46px;padding:0;justify-content:center;font-size:20px}
 
 .catalog-management{margin-bottom:10px}
 .article-merge-choice{display:flex;align-items:center;gap:5px;min-height:44px}
@@ -271,6 +274,7 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
   .list-tools [data-new-article]{grid-column:1;grid-row:1}
   .list-tools .group-toggle{grid-column:2;grid-row:1;margin-left:0}
   .list-tools #select-visible-articles{grid-column:1/-1}
+  .list-tools .list-mode{grid-column:1;grid-row:1;justify-self:stretch;justify-content:center}
 }
 .order-state{display:inline-block;margin-inline-start:6px;color:var(--red);font-size:13px;font-weight:650}
 .order-state.is-sent{color:var(--green)}
@@ -278,9 +282,19 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 .order-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--ln);color:var(--on)}
 .order-day-head strong{font-size:17px}
 .order-day-head .meta{color:var(--on);opacity:.85;white-space:nowrap}
-.order-entry{padding:10px 12px;border-top:1px solid var(--border)}
-.order-day-head+.order-entry,.order-day-head+.swipe>.order-entry{border-top:0}
-.order-entry>.actions{margin-top:8px}
+/* Historial: cada comanda és una targeta separada dins del dia; vora esquerra vermella (pendent) o verda (enviada). */
+.order-day{background:var(--soft)}
+.order-day>.swipe{margin:8px;border-radius:10px}
+.order-entry{padding:10px 12px;border:1px solid var(--border);border-left:5px solid var(--red);border-radius:10px;background:var(--surface)}
+.order-entry.is-sent-order{border-left-color:var(--green)}
+.order-entry.is-open{border-top-color:var(--ln);border-right-color:var(--ln);border-bottom-color:var(--ln)}
+.order-summary>.actions{margin-top:8px}
+/* Missatges d'una comanda oberta: un requadre per proveïdor, amb els seus botons a dins. */
+.order-messages{display:grid;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+.order-message{padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--soft)}
+.order-message h3{margin:0 0 4px;font-size:17px}
+.order-message textarea{background:var(--surface)}
+.order-message>.actions{margin-top:8px}
 .sheet-name{display:block;margin-bottom:12px}
 .sheet-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
 .purchase-price{margin-bottom:4px}
@@ -295,6 +309,9 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 /* Diàleg «A qui ho demanem?»: un botó per proveïdor */
 .supplier-choice{display:grid;gap:8px;margin-top:10px}
 .supplier-choice button{width:100%;justify-content:flex-start;min-height:48px}
+.generate-choice{display:grid;gap:4px;margin-top:10px}
+.generate-choice label{min-height:44px;display:flex;align-items:center;gap:8px;margin:0;font-weight:600}
+.generate-choice input{width:22px;height:22px;margin:0}
 /* Lliscar (ESTIL.md): cap a l'esquerra elimina (vermell); cap a la dreta arxiva o recupera (blau) */
 /* Paperera */
 .swipe.dragging{position:relative;z-index:2;overflow:visible}
@@ -304,6 +321,11 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 /* Subcategories a la pantalla Categories: sagnades sota la categoria principal. */
 .catalog-row.subcategory{padding-left:28px}
 .catalog-row.subcategory .article-open strong::before{content:'— ';color:var(--mu)}
+
+/* Avís per activar les notificacions (només l'administrador principal) */
+.push-notice{margin:10px 0 0;padding:8px 10px;border-radius:8px;background:var(--draft-highlight);font-size:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.push-notice button{min-height:36px;padding-block:2px}
+@media(max-width:480px){.article-lookup .lookup-eye{flex-basis:42px;width:42px;grid-column:auto;justify-self:auto}}
 
 .worker-profiles .worker-profile-item{border-top:1px solid var(--border);padding:10px 0}
 .worker-profile-item>summary,.worker-profile-inactive>summary{cursor:pointer;min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -335,6 +357,10 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 #status:empty{display:none}
 #status{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1000;width:max-content;max-width:min(600px,calc(100% - 24px));margin:0;padding:12px 16px;border-radius:12px;background:var(--surface);color:var(--tx);border:1px solid var(--border);box-shadow:0 8px 28px #11183140;font-weight:600;cursor:pointer}
 #status.error{color:var(--red);border-color:var(--red)}
+/* Camps obligatoris: asterisc vermell al costat del nom (vegeu ESTIL.md → Camps obligatoris). */
+.req-mark::after{content:"*";content:"*" / "";margin-left:3px;color:var(--red);font-weight:700}
+label.req-mark{grid-auto-flow:column;justify-content:start;align-items:baseline}
+label.req-mark::after{margin-left:0}
 
 /* Lliscar (ESTIL.md): cap a l'esquerra elimina (vermell); cap a la dreta arxiva o recupera (blau) */
 .swipe{position:relative;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
@@ -391,7 +417,7 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 <body>
 <main>
 <header class="topbar">
-  <div class="brand"><h1>GestoAdmin</h1><div class="meta version">Backoffice de les apps Gesto · Versió 1.10.1 · <strong class="entorn-proves">PROVES</strong><span id="sync-state" role="status"></span></div></div>
+  <div class="brand"><h1>GestoAdmin</h1><div class="meta version">Backoffice de les apps Gesto · Versió 1.11.0 · <strong class="entorn-proves">PROVES</strong><span id="sync-state" role="status"></span></div></div>
   <div class="top-actions">
     <div class="menu-anchor">
       <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel" hidden><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
@@ -491,9 +517,71 @@ function gestoHeader() {
   return gestoHeader.ready;
 }
 
-// Avisos flotants comuns de les apps Gesto (vegeu ESTIL.md → Avisos i errors). Els fan servir GestoTips, GestoAdmin i GestoStock.
+// Avisos flotants comuns de les apps Gesto (vegeu ESTIL.md → Avisos i errors). Els fan servir GestoCatalog, GestoTips, GestoAdmin i GestoStock.
 // Funciona sobre l'element #status: els d'èxit marxen sols als 6 segons; els d'error (classe .error) i els importants (classe .keep) es queden fins que es premen.
 // Si hi ha un <dialog> obert, l'avís s'hi mou perquè no quedi tapat. Els camps obligatoris buits avisen aquí, sense la bombolla del navegador.
+// Camps obligatoris (ESTIL.md → Camps obligatoris): tot camp amb `required` rep sol un asterisc vermell (.req-mark) al costat del seu nom.
+
+// Etiqueta d'un camp: la <label> que l'envolta, la <label for> o la que té just abans.
+function fieldLabel(field) {
+  const previous = field.previousElementSibling;
+  return field.closest('label') || (field.id && document.querySelector('label[for="'+CSS.escape(field.id)+'"]')) || (previous?.tagName === 'LABEL' ? previous : null);
+}
+// Text del nom del camp.
+function fieldLabelText(field) {
+  const label = fieldLabel(field);
+  if (!label) return '';
+  return (label.contains(field) ? label.childNodes[0]?.textContent : label.textContent)?.trim() || '';
+}
+// On va l'asterisc: l'etiqueta mateixa o, si envolta el camp, el text del nom (dins d'un <span>), perquè surti just al costat.
+function requiredMarkTarget(label) {
+  const fields = 'input,select,textarea';
+  if (!label.querySelector(fields)) return label;
+  for (const node of label.childNodes) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (!node.textContent.trim()) continue;
+      const name = document.createElement('span');
+      name.dataset.reqWrap = '1';
+      node.before(name);
+      name.append(node);
+      return name;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE || node.matches(fields) || node.querySelector(fields)) return null;
+    return node;
+  }
+  return null;
+}
+// Posa o treu l'asterisc (classe .req-mark) segons quins camps són obligatoris ara mateix (també els que canvien o apareixen després).
+function markRequiredFields() {
+  const labels = new Set();
+  for (const field of document.querySelectorAll('input:required:not(:disabled),select:required:not(:disabled),textarea:required:not(:disabled)')) {
+    const label = fieldLabel(field);
+    if (label) labels.add(label);
+  }
+  for (const mark of document.querySelectorAll('.req-mark')) {
+    if (labels.has(mark.closest('label'))) continue;
+    mark.classList.remove('req-mark');
+    if (mark.dataset.reqWrap) mark.replaceWith(...mark.childNodes);
+  }
+  for (const label of labels) {
+    if (label.classList.contains('req-mark') || label.querySelector('.req-mark')) continue;
+    requiredMarkTarget(label)?.classList.add('req-mark');
+  }
+}
+function setupRequiredMarks() {
+  if (document.documentElement.dataset.requiredMarks) return;
+  document.documentElement.dataset.requiredMarks = '1';
+  let queued = false;
+  const update = () => {
+    if (queued) return;
+    queued = true;
+    queueMicrotask(() => { queued = false; markRequiredFields(); });
+  };
+  new MutationObserver(update).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['required','disabled']});
+  update();
+}
+setupRequiredMarks();
+
 function setupNotices() {
   const status = document.querySelector('#status');
   if (!status || status.dataset.notices) return;
@@ -525,11 +613,8 @@ function setupNotices() {
     invalidShown = true;
     setTimeout(() => { invalidShown = false; },0);
     const field = event.target;
-    // Nom del camp: l'etiqueta que l'envolta, la <label for> o la que té just abans; si no, aria-label o placeholder.
-    const previous = field.previousElementSibling;
-    const outer = field.closest('label')?.childNodes[0]?.textContent?.trim();
-    const linked = (field.id && document.querySelector('label[for="'+CSS.escape(field.id)+'"]')) || (previous?.tagName === 'LABEL' ? previous : null);
-    const label = outer || linked?.textContent?.trim() || field.getAttribute('aria-label') || field.placeholder || '';
+    // Nom del camp: el de la seva etiqueta (sense l'asterisc); si no en té, aria-label o placeholder.
+    const label = fieldLabelText(field) || field.getAttribute('aria-label') || field.placeholder || '';
     field.focus();
     status.classList.add('error');
     status.textContent = field.validity.valueMissing

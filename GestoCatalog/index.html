@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>GestoCatalog</title>
-<link rel="icon" type="image/png" href="./icon.png?v=1.42.1">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.42.1">
+<link rel="icon" type="image/png" href="./icon.png?v=1.48.0">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.48.0">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
 <style>/* Colors de totes les apps Gesto, en mode clar i fosc (ESTIL.md, «Colors i tipografia»).
    Font única: si canvies un color aquí, canvia a totes les apps. */
@@ -146,6 +146,7 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .order-editor label:nth-child(3),.order-editor .actions,.order-editor [data-editor-error]{grid-column:1/-1}
 
 .order-list-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:8px;min-width:0;flex:1 1 100%}
+.order-list-filters:not(:has(.list-mode)){grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .order-list-filters label{width:100%}
 .order-list-filters select{height:44px;min-height:44px}
 
@@ -156,7 +157,7 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .order-lines .order-lookup{position:sticky;top:0;z-index:4;margin:10px 0 0;padding:6px 0;background:inherit}
 .order-lines.is-searching .order-lookup{box-shadow:0 6px 8px -6px #11183140}
 .order-lines.is-searching [id^=list-]{min-height:100vh}
-.order-lines.hide-filters .order-list-filters{display:none}
+.order-lines.hide-filters .order-list-filters,.order-lines.hide-filters .list-tools{display:none}
 .order-lines .order-list-filters{margin-top:6px}
 .list-tools:not(:has(button:not([hidden]))){display:none}
 /* Cerca comuna de Nova comanda i Articles */
@@ -164,6 +165,8 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .article-lookup label{flex:1 1 auto;min-width:0}
 .article-lookup button[hidden]{display:none}
 .article-lookup button{min-height:46px}
+/* Ull «Només la comanda» a la dreta de la cerca: quadrat, només la icona. */
+.article-lookup .lookup-eye{flex:0 0 46px;width:46px;padding:0;justify-content:center;font-size:20px}
 
 .catalog-management{margin-bottom:10px}
 .article-merge-choice{display:flex;align-items:center;gap:5px;min-height:44px}
@@ -271,6 +274,7 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
   .list-tools [data-new-article]{grid-column:1;grid-row:1}
   .list-tools .group-toggle{grid-column:2;grid-row:1;margin-left:0}
   .list-tools #select-visible-articles{grid-column:1/-1}
+  .list-tools .list-mode{grid-column:1;grid-row:1;justify-self:stretch;justify-content:center}
 }
 .order-state{display:inline-block;margin-inline-start:6px;color:var(--red);font-size:13px;font-weight:650}
 .order-state.is-sent{color:var(--green)}
@@ -278,9 +282,19 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 .order-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--ln);color:var(--on)}
 .order-day-head strong{font-size:17px}
 .order-day-head .meta{color:var(--on);opacity:.85;white-space:nowrap}
-.order-entry{padding:10px 12px;border-top:1px solid var(--border)}
-.order-day-head+.order-entry,.order-day-head+.swipe>.order-entry{border-top:0}
-.order-entry>.actions{margin-top:8px}
+/* Historial: cada comanda és una targeta separada dins del dia; vora esquerra vermella (pendent) o verda (enviada). */
+.order-day{background:var(--soft)}
+.order-day>.swipe{margin:8px;border-radius:10px}
+.order-entry{padding:10px 12px;border:1px solid var(--border);border-left:5px solid var(--red);border-radius:10px;background:var(--surface)}
+.order-entry.is-sent-order{border-left-color:var(--green)}
+.order-entry.is-open{border-top-color:var(--ln);border-right-color:var(--ln);border-bottom-color:var(--ln)}
+.order-summary>.actions{margin-top:8px}
+/* Missatges d'una comanda oberta: un requadre per proveïdor, amb els seus botons a dins. */
+.order-messages{display:grid;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+.order-message{padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--soft)}
+.order-message h3{margin:0 0 4px;font-size:17px}
+.order-message textarea{background:var(--surface)}
+.order-message>.actions{margin-top:8px}
 .sheet-name{display:block;margin-bottom:12px}
 .sheet-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
 .purchase-price{margin-bottom:4px}
@@ -295,6 +309,9 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 /* Diàleg «A qui ho demanem?»: un botó per proveïdor */
 .supplier-choice{display:grid;gap:8px;margin-top:10px}
 .supplier-choice button{width:100%;justify-content:flex-start;min-height:48px}
+.generate-choice{display:grid;gap:4px;margin-top:10px}
+.generate-choice label{min-height:44px;display:flex;align-items:center;gap:8px;margin:0;font-weight:600}
+.generate-choice input{width:22px;height:22px;margin:0}
 /* Lliscar (ESTIL.md): cap a l'esquerra elimina (vermell); cap a la dreta arxiva o recupera (blau) */
 /* Paperera */
 .swipe.dragging{position:relative;z-index:2;overflow:visible}
@@ -304,6 +321,11 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 /* Subcategories a la pantalla Categories: sagnades sota la categoria principal. */
 .catalog-row.subcategory{padding-left:28px}
 .catalog-row.subcategory .article-open strong::before{content:'— ';color:var(--mu)}
+
+/* Avís per activar les notificacions (només l'administrador principal) */
+.push-notice{margin:10px 0 0;padding:8px 10px;border-radius:8px;background:var(--draft-highlight);font-size:14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.push-notice button{min-height:36px;padding-block:2px}
+@media(max-width:480px){.article-lookup .lookup-eye{flex-basis:42px;width:42px;grid-column:auto;justify-self:auto}}
 
 .worker-profiles .worker-profile-item{border-top:1px solid var(--border);padding:10px 0}
 .worker-profile-item>summary,.worker-profile-inactive>summary{cursor:pointer;min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -330,6 +352,10 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 #status:empty{display:none}
 #status{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1000;width:max-content;max-width:min(600px,calc(100% - 24px));margin:0;padding:12px 16px;border-radius:12px;background:var(--surface);color:var(--tx);border:1px solid var(--border);box-shadow:0 8px 28px #11183140;font-weight:600;cursor:pointer}
 #status.error{color:var(--red);border-color:var(--red)}
+/* Camps obligatoris: asterisc vermell al costat del nom (vegeu ESTIL.md → Camps obligatoris). */
+.req-mark::after{content:"*";content:"*" / "";margin-left:3px;color:var(--red);font-weight:700}
+label.req-mark{grid-auto-flow:column;justify-content:start;align-items:baseline}
+label.req-mark::after{margin-left:0}
 
 /* Lliscar (ESTIL.md): cap a l'esquerra elimina (vermell); cap a la dreta arxiva o recupera (blau) */
 .swipe{position:relative;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
@@ -382,11 +408,12 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 .topbar .entorn-proves{color:var(--red);letter-spacing:.04em}
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
+<meta name="gesto-version" content="1.48.0">
 </head>
 <body>
 <main>
 <header class="topbar">
-  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.42.1 · <strong class="entorn-proves">PROVES</strong><span id="sync-state" role="status"></span></div></div>
+  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.48.0 · <strong class="entorn-proves">PROVES</strong><span id="sync-state" role="status"></span></div></div>
   <div class="top-actions">
     <div class="menu-anchor">
       <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel" hidden><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
@@ -486,9 +513,71 @@ function gestoHeader() {
   return gestoHeader.ready;
 }
 
-// Avisos flotants comuns de les apps Gesto (vegeu ESTIL.md → Avisos i errors). Els fan servir GestoTips, GestoAdmin i GestoStock.
+// Avisos flotants comuns de les apps Gesto (vegeu ESTIL.md → Avisos i errors). Els fan servir GestoCatalog, GestoTips, GestoAdmin i GestoStock.
 // Funciona sobre l'element #status: els d'èxit marxen sols als 6 segons; els d'error (classe .error) i els importants (classe .keep) es queden fins que es premen.
 // Si hi ha un <dialog> obert, l'avís s'hi mou perquè no quedi tapat. Els camps obligatoris buits avisen aquí, sense la bombolla del navegador.
+// Camps obligatoris (ESTIL.md → Camps obligatoris): tot camp amb `required` rep sol un asterisc vermell (.req-mark) al costat del seu nom.
+
+// Etiqueta d'un camp: la <label> que l'envolta, la <label for> o la que té just abans.
+function fieldLabel(field) {
+  const previous = field.previousElementSibling;
+  return field.closest('label') || (field.id && document.querySelector('label[for="'+CSS.escape(field.id)+'"]')) || (previous?.tagName === 'LABEL' ? previous : null);
+}
+// Text del nom del camp.
+function fieldLabelText(field) {
+  const label = fieldLabel(field);
+  if (!label) return '';
+  return (label.contains(field) ? label.childNodes[0]?.textContent : label.textContent)?.trim() || '';
+}
+// On va l'asterisc: l'etiqueta mateixa o, si envolta el camp, el text del nom (dins d'un <span>), perquè surti just al costat.
+function requiredMarkTarget(label) {
+  const fields = 'input,select,textarea';
+  if (!label.querySelector(fields)) return label;
+  for (const node of label.childNodes) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (!node.textContent.trim()) continue;
+      const name = document.createElement('span');
+      name.dataset.reqWrap = '1';
+      node.before(name);
+      name.append(node);
+      return name;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE || node.matches(fields) || node.querySelector(fields)) return null;
+    return node;
+  }
+  return null;
+}
+// Posa o treu l'asterisc (classe .req-mark) segons quins camps són obligatoris ara mateix (també els que canvien o apareixen després).
+function markRequiredFields() {
+  const labels = new Set();
+  for (const field of document.querySelectorAll('input:required:not(:disabled),select:required:not(:disabled),textarea:required:not(:disabled)')) {
+    const label = fieldLabel(field);
+    if (label) labels.add(label);
+  }
+  for (const mark of document.querySelectorAll('.req-mark')) {
+    if (labels.has(mark.closest('label'))) continue;
+    mark.classList.remove('req-mark');
+    if (mark.dataset.reqWrap) mark.replaceWith(...mark.childNodes);
+  }
+  for (const label of labels) {
+    if (label.classList.contains('req-mark') || label.querySelector('.req-mark')) continue;
+    requiredMarkTarget(label)?.classList.add('req-mark');
+  }
+}
+function setupRequiredMarks() {
+  if (document.documentElement.dataset.requiredMarks) return;
+  document.documentElement.dataset.requiredMarks = '1';
+  let queued = false;
+  const update = () => {
+    if (queued) return;
+    queued = true;
+    queueMicrotask(() => { queued = false; markRequiredFields(); });
+  };
+  new MutationObserver(update).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['required','disabled']});
+  update();
+}
+setupRequiredMarks();
+
 function setupNotices() {
   const status = document.querySelector('#status');
   if (!status || status.dataset.notices) return;
@@ -520,11 +609,8 @@ function setupNotices() {
     invalidShown = true;
     setTimeout(() => { invalidShown = false; },0);
     const field = event.target;
-    // Nom del camp: l'etiqueta que l'envolta, la <label for> o la que té just abans; si no, aria-label o placeholder.
-    const previous = field.previousElementSibling;
-    const outer = field.closest('label')?.childNodes[0]?.textContent?.trim();
-    const linked = (field.id && document.querySelector('label[for="'+CSS.escape(field.id)+'"]')) || (previous?.tagName === 'LABEL' ? previous : null);
-    const label = outer || linked?.textContent?.trim() || field.getAttribute('aria-label') || field.placeholder || '';
+    // Nom del camp: el de la seva etiqueta (sense l'asterisc); si no en té, aria-label o placeholder.
+    const label = fieldLabelText(field) || field.getAttribute('aria-label') || field.placeholder || '';
     field.focus();
     status.classList.add('error');
     status.textContent = field.validity.valueMissing
@@ -1300,6 +1386,150 @@ async function save(payload, done, button, success = () => 'Canvis desats.', aft
   }
 }
 
+// «Nova comanda» és compartida: els canvis fets en un altre mòbil han de sortir aquí de seguida.
+// Cada 3 segons es pregunta al servidor només el número de revisió de l'esborrany (consulta lleugera);
+// si ha canviat, es tornen a llegir totes les dades. També es fa en tornar a l'app i, per a la resta de canvis, cada minut.
+// No s'actualitza la pantalla si s'està desant alguna cosa, si hi ha una fitxa oberta o si s'està escrivint en un camp
+// (així no es perd el teclat ni el text): en aquest cas s'espera a deixar el camp o tancar la fitxa.
+let refreshWaiting = false;
+let refreshRunning = false;
+const typing = () => document.activeElement?.matches('input, textarea, select, [contenteditable]');
+const canRefresh = () => request && data && !busy && !draftPending && !draftSending && !document.hidden;
+async function refreshFromServer() {
+  if (!canRefresh() || refreshRunning) return;
+  if (document.querySelector('dialog[open]') || typing()) { refreshWaiting = true; return; }
+  refreshRunning = true;
+  const edits = draftEdits;
+  try {
+    const fresh = await api();
+    // Si mentrestant s'ha tocat la comanda en aquest mòbil, aquestes dades ja són velles.
+    if (!canRefresh() || edits !== draftEdits) return;
+    if (document.querySelector('dialog[open]') || typing()) { refreshWaiting = true; return; }
+    refreshWaiting = false;
+    if (JSON.stringify(fresh) === JSON.stringify(data)) return;
+    const scroll = scrollY;
+    data = fresh;
+    render();
+    scrollTo(0,scroll);
+  } catch {
+    // Sense connexió: es tornarà a provar.
+  } finally {
+    refreshRunning = false;
+  }
+}
+async function checkDraft() {
+  if (refreshWaiting) return refreshFromServer();
+  if (!canRefresh() || refreshRunning) return;
+  try {
+    const edits = draftEdits;
+    const {revision} = await api({action:'draftRevision'});
+    if (data && edits === draftEdits && revision !== data.draft.revision) await refreshFromServer();
+  } catch {
+    // Sense connexió: es tornarà a provar.
+  }
+}
+document.addEventListener('visibilitychange',() => { if (!document.hidden) refreshFromServer(); });
+addEventListener('pageshow',event => { if (event.persisted) refreshFromServer(); });
+document.addEventListener('focusout',() => setTimeout(() => { if (refreshWaiting && !typing()) refreshFromServer(); },300));
+document.addEventListener('close',() => { if (refreshWaiting) setTimeout(refreshFromServer,300); },true);
+setInterval(checkDraft,3000);
+setInterval(refreshFromServer,60000);
+
+// ---- Avisos al mòbil (src/push.mjs i sw.js) ----
+// De moment només per a l'administrador principal: l'avisa quan algú que no és administrador afegeix articles a «Nova comanda».
+// A l'iPhone només funcionen si l'app s'obre des de la icona de la pantalla d'inici.
+// pushState: '' (no s'ensenya res), 'install' (cal afegir-la a la pantalla d'inici), 'off', 'denied' o 'on'.
+let pushState = '';
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const pushKeyBytes = key => Uint8Array.from(atob(key.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((key.length+3)%4)),char => char.charCodeAt(0));
+async function initPush() {
+  if (!request || !data?.me?.principal) return;
+  if (!pushSupported()) {
+    pushState = /iPhone|iPad/.test(navigator.userAgent) && !standalone() ? 'install' : '';
+  } else {
+    try {
+      const registration = await navigator.serviceWorker.register('./sw.js');
+      const subscription = Notification.permission === 'granted' ? await registration.pushManager.getSubscription() : null;
+      // Es torna a enviar al servidor cada vegada (per si l'adreça ha canviat o s'havia esborrat).
+      if (subscription) await api({action:'pushSubscribe',subscription:subscription.toJSON()});
+      pushState = subscription ? 'on' : Notification.permission === 'denied' ? 'denied' : 'off';
+    } catch {
+      pushState = Notification.permission === 'denied' ? 'denied' : 'off';
+    }
+  }
+  if (section === 'order' && !typing() && !document.querySelector('dialog[open]')) render();
+}
+async function enablePush(button) {
+  // La petició de permís ha d'anar just després del toc (l'iPhone ho exigeix).
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    pushState = permission === 'denied' ? 'denied' : 'off';
+    notify('No s’han activat els avisos.',true);
+    render();
+    return;
+  }
+  button.disabled = true;
+  try {
+    const registration = await navigator.serviceWorker.register('./sw.js');
+    await navigator.serviceWorker.ready;
+    const {publicKey} = await api({action:'pushKey'});
+    const subscription = await registration.pushManager.getSubscription() ||
+      await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushKeyBytes(publicKey)});
+    await api({action:'pushSubscribe',subscription:subscription.toJSON(),test:true});
+    pushState = 'on';
+    notify('Avisos activats. T’ha d’arribar un avís de prova.');
+  } catch (error) {
+    notify('No s’han pogut activar els avisos. '+(error.message || ''),true);
+  } finally {
+    button.disabled = false;
+    render();
+  }
+}
+function pushNotice() {
+  if (pushState === 'install') return '<p class="push-notice">🔔 Per rebre un avís quan algú afegeixi articles, obre l’app des de la icona de la pantalla d’inici (Safari → Compartir → «Afegeix a la pantalla d’inici»).</p>';
+  if (pushState === 'off') return '<p class="push-notice">🔔 Vols rebre un avís quan algú afegeixi articles a la comanda? <button type="button" id="push-enable">Activa els avisos</button></p>';
+  if (pushState === 'denied') return '<p class="push-notice">🔔 Els avisos estan bloquejats. Activa’ls a Configuració → Notificacions → GestoCatalog.</p>';
+  return '';
+}
+navigator.serviceWorker?.addEventListener('message',event => {
+  if (event.data?.type !== 'open-section' || !data) return;
+  section = 'order';
+  render();
+});
+if (new URLSearchParams(location.search).get('section') === 'order') section = 'order';
+
+// Versió nova: en obrir l'app, en tornar-hi i cada 5 minuts es mira version.json (el genera build.mjs en publicar).
+// Si n'hi ha una de més nova, es recarrega la pàgina (amb ?v= perquè no es faci servir la còpia guardada del navegador).
+// S'espera si s'està desant, si hi ha una fitxa oberta o si s'està escrivint. Només un intent per versió (sessionStorage).
+const currentVersion = document.querySelector('meta[name="gesto-version"]')?.content || '';
+let newVersion = '';
+async function checkVersion() {
+  if (!currentVersion || document.hidden) return;
+  if (!newVersion) {
+    try {
+      const response = await fetch('./version.json?t='+Date.now(),{cache:'no-store'});
+      if (!response.ok) return;
+      const {version} = await response.json();
+      if (!version || version === currentVersion) return;
+      try { if (sessionStorage.getItem('gesto-version-reload') === version) return; } catch {}
+      newVersion = version;
+    } catch { return; }
+  }
+  if (busy || draftPending || draftSending || document.querySelector('dialog[open]') || typing()) return;
+  try { sessionStorage.setItem('gesto-version-reload',newVersion); } catch {}
+  const url = new URL(location.href);
+  url.searchParams.set('v',newVersion);
+  location.replace(url.href);
+}
+document.addEventListener('visibilitychange',() => { if (!document.hidden) checkVersion(); });
+addEventListener('pageshow',event => { if (event.persisted) checkVersion(); });
+document.addEventListener('focusout',() => setTimeout(() => { if (newVersion) checkVersion(); },300));
+document.addEventListener('close',() => { if (newVersion) setTimeout(checkVersion,300); },true);
+setInterval(() => { if (newVersion) checkVersion(); },3000);
+setInterval(checkVersion,300000);
+checkVersion();
+
 // Camps de la fitxa d'un proveïdor, una unitat o una categoria (per crear-ne o editar-ne).
 function catalogFields(current) {
   const isSupplier = section === 'suppliers';
@@ -1761,7 +1991,10 @@ function listFilters(mode) {
 function listLookup(mode) {
   return '<div class="order-lookup"><form class="article-lookup" data-list-lookup="'+mode+'">'+
     '<label>Cerca o crea un article<input id="'+mode+'-search" data-list-search="'+mode+'" name="articleName" placeholder="Cerca pel nom" type="search" enterkeyhint="done" maxlength="120" autocomplete="off" value="'+escape(listState[mode].search)+'"></label>'+
-    '<button type="submit" class="primary" data-list-create="'+mode+'"'+(canCreateSearched(mode) ? '' : ' hidden')+'>Crea l’article</button></form></div>';
+    '<button type="submit" class="primary" data-list-create="'+mode+'"'+(canCreateSearched(mode) ? '' : ' hidden')+'>Crea l’article</button>'+
+    // Nova comanda: l'ull («Només la comanda»), petit i sense text, a la dreta de la cerca; sempre visible.
+    (mode === 'order' ? '<button type="button" id="order-visibility" class="list-mode lookup-eye" aria-pressed="'+onlyOrdered+'" aria-label="Només la comanda" title="Només la comanda"><span aria-hidden="true">👁︎</span></button>' : '')+
+    '</form></div>';
 }
 
 // El botó «Crea l'article» només surt quan el nom buscat no existeix.
@@ -1843,10 +2076,11 @@ function matchesArticleName(article, query, exact = false) {
 
 function order() {
   const draft = data.draft.lines;
-  return '<article class="card order-lines">'+listHeading('Nova comanda',draftArticleIds().size+' de '+data.articles.filter(article => !article.archived).length+' articles a la comanda','order',
-    '<button type="button" id="order-visibility" class="list-mode" aria-pressed="'+onlyOrdered+'"><span aria-hidden="true">👁︎</span> Només la comanda</button>')+
+  return '<article class="card order-lines">'+listHeading('Nova comanda',draftArticleIds().size+' de '+data.articles.filter(article => !article.archived).length+' articles a la comanda','order','')+
+    pushNotice()+
     listTools('order')+'<div id="list-order">'+articleList('order')+'</div>'+
-    (draft.length ? '<div class="actions order-send"><button class="primary" id="generate">Desa i genera els missatges</button></div>' : '')+
+    // Només els administradors envien la comanda als proveïdors; la resta només hi afegeixen articles.
+    (draft.length && data.me?.admin ? '<div class="actions order-send"><button class="primary" id="generate">Desa i genera els missatges</button></div>' : '')+
     '</article>';
 }
 
@@ -2059,11 +2293,62 @@ function openSupplierChoice(article, suppliers, searched) {
   dialog.querySelector('[data-choose-supplier]')?.focus();
 }
 
+// «Desa i genera els missatges»: de quins proveïdors es fa la comanda (els altres es queden a «Nova comanda»).
+function openGenerateChoice() {
+  const counts = new Map();
+  for (const line of data.draft.lines) counts.set(line.supplier,(counts.get(line.supplier) || 0)+1);
+  const suppliers = [...counts.keys()].map(id => byId('suppliers',id)).filter(Boolean)
+    .sort((a,b) => a.name.localeCompare(b.name,'ca',{sensitivity:'base'}));
+  let dialog = document.querySelector('#order-dialog');
+  if (!dialog) {
+    dialog = document.createElement('dialog');
+    dialog.id = 'order-dialog';
+    dialog.setAttribute('aria-labelledby','order-dialog-title');
+    dialog.addEventListener('close',() => { sheetId = ''; });
+    document.querySelector('#workspace').append(dialog);
+  }
+  sheetId = '';
+  dialog.innerHTML = '<div class="sheet-head"><h2 id="order-dialog-title">Genera la comanda</h2><button type="button" id="close-order-dialog" aria-label="Tanca">✕</button></div>'+
+    '<section class="sheet-part"><h3>De quins proveïdors?</h3><p class="meta">Els articles dels proveïdors que no triïs es quedaran a «Nova comanda».</p>'+
+    '<div class="generate-choice">'+suppliers.map(supplier => {
+      const count = counts.get(supplier.id);
+      return '<label><input type="checkbox" name="generate-supplier" value="'+escape(supplier.id)+'"'+(suppliers.length === 1 ? ' checked' : '')+'> '+
+        escape(supplier.name)+' <span class="meta">('+count+(count === 1 ? ' article' : ' articles')+')</span></label>';
+    }).join('')+'</div></section>'+
+    '<div class="actions sheet-foot"><button type="button" class="primary" id="generate-selected">Desa i genera els missatges</button></div>';
+  if (!dialog.open) dialog.showModal();
+  dialog.querySelector('[name="generate-supplier"]')?.focus();
+}
+
 // L'esborrany canvia a la pantalla de seguida i es desa al servidor en segon pla (sense tornar a carregar totes les dades).
 let draftPending = null;
 let draftSending = null;
+// «Nova comanda» és compartida: si mentrestant algú altre l'ha canviat (409), no es perd el canvi propi.
+// Cada canvi es guarda com a operacions (afegeix/canvia/treu una línia) i, si hi ha conflicte,
+// s'apliquen sobre la versió del servidor i es torna a desar.
+let draftOps = [];
+let draftEdits = 0;
+const draftKey = line => JSON.stringify([line.article,line.supplier,line.unit]);
+function draftDiff(before, after) {
+  const old = new Map(before.map(line => [draftKey(line),line]));
+  const now = new Map(after.map(line => [draftKey(line),line]));
+  const ops = [];
+  for (const [key,line] of now) if (!old.has(key) || old.get(key).quantity !== line.quantity) ops.push({key,line});
+  for (const key of old.keys()) if (!now.has(key)) ops.push({key,line:null});
+  return ops;
+}
+function applyDraftOps(lines, ops) {
+  const result = new Map(lines.map(line => [draftKey(line),line]));
+  for (const {key,line} of ops) {
+    if (line) result.set(key,{...line}); else result.delete(key);
+  }
+  return [...result.values()];
+}
 function saveDraft(lines, button, message = '') {
-  data.draft.lines = combineDraftLines(lines);
+  const combined = combineDraftLines(lines);
+  draftOps.push(...draftDiff(data.draft.lines,combined));
+  draftEdits += 1;
+  data.draft.lines = combined;
   render();
   if (message) notify(message);
   draftPending = data.draft.lines;
@@ -2073,25 +2358,39 @@ function saveDraft(lines, button, message = '') {
 
 async function sendDraft() {
   let failures = 0;
+  let conflicts = 0;
   while (draftPending) {
     const lines = draftPending;
+    const sentOps = draftOps.length;
     draftPending = null;
     setSync('Desant…');
     try {
       await api({action:'draft',lines,revision:data.draft.revision});
       data.draft.revision += 1;
+      draftOps.splice(0,sentOps);
       failures = 0;
+      conflicts = 0;
     } catch (error) {
-      if (error.status === 409) {
-        // Un altre dispositiu ha canviat l'esborrany: es mostra el del servidor.
-        data = await api().catch(() => data);
-        render();
-        notify('L’esborrany ha canviat en un altre dispositiu. Revisa les línies i repeteix el canvi.',true);
-        draftPending = null;
-        break;
+      if (error.status === 409 && conflicts < 5) {
+        // Algú altre ha canviat la comanda alhora: es pren la del servidor, s'hi tornen a aplicar
+        // els canvis propis que encara no s'havien desat i es torna a desar (sense perdre res de ningú).
+        conflicts += 1;
+        try {
+          const fresh = await api();
+          data = fresh;
+          data.draft.lines = combineDraftLines(applyDraftOps(fresh.draft.lines,draftOps));
+          draftPending = draftOps.length ? data.draft.lines : null;
+          if (!typing() && !document.querySelector('dialog[open]')) render();
+          continue;
+        } catch {
+          draftPending = draftPending || lines;
+          await new Promise(resolve => setTimeout(resolve,3000));
+          continue;
+        }
       }
       if (error.status >= 400 && error.status < 500) {
         data = await api().catch(() => data);
+        draftOps = [];
         render();
         notify('No s’ha pogut desar l’últim canvi: '+error.message,true);
         draftPending = null;
@@ -2147,12 +2446,15 @@ function history() {
       const state = done ? '<span class="order-state is-sent">✓ Enviada</span>' :
         '<span class="order-state">Pendent d’enviar'+(sent ? ' · '+sent+' de '+groups.size+' enviats' : '')+'</span>';
       const mine = lines[0].author_email === me;
-      return swipeOpen('order:'+id,true,false)+'<div class="order-entry swipe-row"><div><strong>'+escape(orderDayShort(key))+' · '+escape(orderTimeFormat.format(new Date(lines[0].created_at)))+'</strong> '+state+'<div class="meta">'+
+      // Cada comanda és una targeta pròpia (vora esquerra vermella si està pendent, verda si està enviada); en obrir-la,
+      // cada proveïdor surt dins d'un requadre amb els seus botons, perquè quedi clar de quina comanda i de quin proveïdor són.
+      const open = id === openOrder;
+      return swipeOpen('order:'+id,true,false)+'<div class="order-entry swipe-row'+(done ? ' is-sent-order' : '')+(open ? ' is-open' : '')+'"><div class="order-summary"><div><strong>'+escape(orderDayShort(key))+' · '+escape(orderTimeFormat.format(new Date(lines[0].created_at)))+'</strong> '+state+'<div class="meta">'+
         lines.length+' '+(lines.length === 1 ? 'línia' : 'línies')+' · '+groups.size+' '+(groups.size === 1 ? 'proveïdor' : 'proveïdors')+
         '</div>'+(mine ? '' : '<div class="meta">Feta per '+escape(authorName(lines[0].author_email))+'</div>')+'</div>'+
-        '<div class="actions"><button data-order="'+escape(id)+'" aria-expanded="'+(id === openOrder)+'">'+(id === openOrder ? 'Amaga' : 'Mostra els missatges')+'</button>'+
-        (data.permissions?.order !== false ? '<button data-restore-order="'+escape(id)+'">Recupera per editar</button>' : '')+'</div>'+
-        (id === openOrder ? [...groups.values()].map(messageCard).join('') : '')+'</div></div>';
+        '<div class="actions"><button data-order="'+escape(id)+'" aria-expanded="'+open+'">'+(open ? 'Amaga els missatges' : 'Mostra els missatges')+'</button>'+
+        (data.permissions?.order !== false ? '<button data-restore-order="'+escape(id)+'">'+(groups.size > 1 ? 'Recupera-ho tot' : 'Recupera per editar')+'</button>' : '')+'</div>'+
+        '</div>'+(open ? '<div class="order-messages">'+[...groups.values()].map(messageCard).join('')+'</div>' : '')+'</div></div>';
     }).join('')+'</section>').join('') || empty(all.size ? 'No has fet cap comanda.' : 'Encara no hi ha comandes desades.'))+'</article>';
 }
 
@@ -2407,8 +2709,12 @@ function messageCard(lines) {
       '<button data-order-sent="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'" data-sent="0">Desmarca</button></div>'
     : '<div class="row"><span class="order-state">Pendent d’enviar</span>'+
       '<button class="primary" data-order-sent="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'" data-sent="1">Marca com a enviat</button></div>';
-  return '<section class="item"><h3>'+escape(supplier.supplier)+'</h3>'+sentControls+'<label>Missatge<textarea readonly rows="'+Math.min(18,message.split('\n').length+1)+'">'+escape(message)+'</textarea></label>'+
-    '<div class="actions"><button data-copy>Copia el missatge</button>'+
+  // Comanda amb diversos proveïdors: cada proveïdor es pot recuperar per separat.
+  const several = new Set(data.lines.filter(line => line.order_id === supplier.order_id).map(line => line.supplier_id)).size > 1;
+  const restore = several && data.permissions?.order !== false
+    ? '<button data-restore-order="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'">Recupera per editar</button>' : '';
+  return '<section class="order-message"><h3>'+escape(supplier.supplier)+'</h3>'+sentControls+'<label>Missatge<textarea readonly rows="'+Math.min(18,message.split('\n').length+1)+'">'+escape(message)+'</textarea></label>'+
+    '<div class="actions"><button data-copy>Copia el missatge</button>'+restore+
     (!phone && current ? '<a href="'+escape(whatsappLink('',message))+'">Tria dins de WhatsApp</a>' : '')+'</div>'+chooser+'</section>';
 }
 
@@ -3080,9 +3386,10 @@ document.addEventListener('click',async event => {
       if (error.name !== 'AbortError') notify('No s’ha pogut obrir l’agenda. Pots escriure el número al formulari.',true);
     }
   } else if (button.id === 'order-visibility') {
+    // Només es refà la llista: així la cerca i els filtres es queden com estaven.
     onlyOrdered = !onlyOrdered;
-    render();
-    document.querySelector('#order-visibility').focus();
+    button.setAttribute('aria-pressed',String(onlyOrdered));
+    refreshList('order');
   } else if (target.step) {
     const position = Number(target.stepIndex);
     const lines = data.draft.lines.map((line,i) => i === position ? {...line,quantity:Math.round((line.quantity+Number(target.step))*1000)/1000} : line)
@@ -3179,9 +3486,18 @@ document.addEventListener('click',async event => {
     const removed = data.draft.lines[Number(target.remove)]?.article;
     await saveDraft(data.draft.lines.filter((_,index) => index !== Number(target.remove)),button);
     if (removed) focusRowToggle(removed);
+  } else if (button.id === 'push-enable') {
+    await enablePush(button);
   } else if (button.id === 'generate') {
+    // Primer es pregunta de quins proveïdors es genera la comanda.
     await flushDraft();
-    await save({action:'order',revision:data.draft.revision}, result => {
+    openGenerateChoice();
+  } else if (button.id === 'generate-selected') {
+    const suppliers = [...button.closest('dialog').querySelectorAll('[name="generate-supplier"]:checked')].map(input => input.value);
+    if (!suppliers.length) { notify('Tria almenys un proveïdor.',true); return; }
+    button.closest('dialog').close();
+    await flushDraft();
+    await save({action:'order',revision:data.draft.revision,suppliers}, result => {
       onlyOrdered = false;
       orderCategory = '';
       orderSupplier = '';
@@ -3194,17 +3510,23 @@ document.addEventListener('click',async event => {
       () => markSent ? 'Missatge marcat com a enviat.' : 'Missatge marcat com a pendent.');
   } else if (target.restoreOrder) {
     const id = target.restoreOrder;
-    const lines = data.lines.filter(line => line.order_id === id);
+    // Amb data-supplier, només els articles d'aquest proveïdor; la resta de la comanda es queda a l'historial.
+    const only = target.supplier || '';
+    const lines = data.lines.filter(line => line.order_id === id && (!only || line.supplier_id === only));
     if (!lines.length) return;
+    const rest = only ? new Set(data.lines.filter(line => line.order_id === id && line.supplier_id !== only).map(line => line.supplier_id)).size : 0;
     await flushDraft();
     const pending = data.draft.lines.length;
     const sent = new Set(lines.map(line => line.supplier_id).filter(supplier => sentInfo(id,supplier))).size;
-    const question = 'Vols passar els '+lines.length+(lines.length === 1 ? ' article' : ' articles')+' d’aquesta comanda a «Nova comanda» per editar-la?'+
+    const question = (only
+        ? 'Vols passar '+(lines.length === 1 ? 'l’article' : 'els '+lines.length+' articles')+' de '+lines[0].supplier+' a «Nova comanda» per editar-'+(lines.length === 1 ? 'lo' : 'los')+'?'
+        : 'Vols passar els '+lines.length+(lines.length === 1 ? ' article' : ' articles')+' d’aquesta comanda a «Nova comanda» per editar-la?')+
       (pending ? ' S’afegiran '+(pending === 1 ? 'a l’article' : 'als '+pending+' articles')+' que ja hi tens.' : '')+
       (sent ? ' Ja n’havies enviat '+(sent === 1 ? '1 missatge' : sent+' missatges')+'.' : '')+
-      ' La comanda i els seus missatges s’eliminaran de l’historial.';
+      (only ? ' El missatge de '+lines[0].supplier+' s’eliminarà de l’historial'+(rest ? '; els dels altres proveïdors s’hi queden.' : '.')
+        : ' La comanda i els seus missatges s’eliminaran de l’historial.');
     if (!window.confirm(question)) return;
-    await save({action:'restoreOrder',id,revision:data.draft.revision},() => {
+    await save({action:'restoreOrder',id,...(only ? {supplier:only} : {}),revision:data.draft.revision},() => {
       if (openOrder === id) openOrder = '';
       onlyOrdered = true;
       orderCategory = '';
@@ -3640,6 +3962,7 @@ if (!initialData) setSync('Carregant…');
   setSync(readyStatus);
   notify('');
   render();
+  initPush();
 }).catch(error => {
   setSync('Sense connexió');
   notify('No s’han pogut carregar les dades. '+error.message,true);
