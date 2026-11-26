@@ -1,0 +1,1439 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>GestoAdmin</title>
+<link rel="icon" type="image/png" href="./icon.png?v=1.10.1">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.10.1">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
+<style>/* Colors de totes les apps Gesto, en mode clar i fosc (ESTIL.md, «Colors i tipografia»).
+   Font única: si canvies un color aquí, canvia a totes les apps. */
+:root{color-scheme:light;--bg:#f7f8fd;--tx:#28377e;--mu:#566598;--ln:#303f91;--surface:#fff;--soft:#f0f2fc;--border:#d4daf1;--field:#b6bfdf;--on:#fff;--red:#b42318;--green:#17734a}
+:root[data-theme=dark]{color-scheme:dark;--bg:#10152c;--tx:#e5e9ff;--mu:#adb8e5;--ln:#a1afff;--surface:#1b2447;--soft:#232f59;--border:#425080;--field:#6371a0;--on:#10152c;--red:#ff9992;--green:#84dbab}
+:root{--main-bg:#eaf0ff;--main-border:#afbfeb}
+:root[data-theme=dark]{--main-bg:#202e55;--main-border:#516798}
+
+/* Estil de base de les apps Gesto (ESTIL.md): tipografia, targetes, camps, botons, llistes, fitxes, inici de sessió.
+   El fan servir GestoCatalog, GestoTips i GestoAdmin. Va després de colors.css i abans de l'estil propi de cada app. */
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:760px;margin:auto;padding:20px 16px 36px}
+header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:18px}
+h1{font-size:28px;letter-spacing:-.035em;margin:0}
+h2{font-size:21px;margin:0 0 14px}
+h3{font-size:17px;margin:0 0 8px}
+p{margin:8px 0}
+nav,.actions{display:flex;gap:8px;flex-wrap:wrap}
+nav{margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 3px 14px rgba(40,55,126,.055);padding:20px;margin-bottom:16px}
+label{display:grid;gap:4px;font-size:14px;color:var(--mu)}
+input,select,textarea{width:100%;min-height:46px;padding:8px 12px;border:1px solid var(--field);border-radius:10px;background:var(--surface);color:var(--tx);font:inherit;font-size:16px}
+textarea{display:block;resize:vertical;margin:10px 0}
+button,.button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 15px;border:1px solid var(--ln);border-radius:10px;background:var(--surface);color:var(--tx);font:600 15px/1.3 inherit;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none}
+button:hover,.button:hover{background:var(--soft)}
+.primary,[aria-current=page]{background:var(--ln);color:var(--on)}
+.primary:hover,[aria-current=page]:hover{background:var(--ln);filter:brightness(1.13)}
+:focus-visible{outline:3px solid #788cf0;outline-offset:2px}
+button:disabled{opacity:.55;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.item{border-top:1px solid var(--border);padding:8px 0}
+.item:last-child{padding-bottom:0}
+.meta{color:var(--mu);font-size:14px}
+.error,.remove{color:var(--red)}
+@media(max-width:430px){main{padding:14px 12px 28px}.card{padding:15px}h1{font-size:24px}nav button{padding:8px 11px}}
+[hidden]{display:none !important}
+main{width:100%;padding-inline:max(12px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-right))}
+.card,.grid,.grid>* ,label,.row>*{min-width:0}
+input,select,textarea,button,.button{max-width:100%;min-width:0}
+input[type=file]{width:100%}
+img,video,canvas{max-width:100%;height:auto}
+.card{overflow-wrap:anywhere}
+.grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+#login-panel{max-width:500px;margin-inline:auto}
+#login-form .grid{grid-template-columns:minmax(0,1fr)}
+.login-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#password-reset{display:inline-block;margin:12px 0;color:var(--tx);text-underline-offset:.18em}
+#login-status:empty{display:none}
+@media(max-width:480px){
+  html{-webkit-text-size-adjust:100%}
+  button,.button{touch-action:manipulation}
+}
+/* Requadre principal de cada pantalla */
+.main-card{background:var(--main-bg);border-color:var(--main-border)}
+.main-card .card{background:var(--surface);box-shadow:none;border-radius:14px;padding:16px;margin:12px 0 0}
+.main-card .card h3:first-child{margin-top:0}
+.main-card .card h2{font-size:17px;margin:0 0 10px}
+.main-card>.card:first-of-type{margin-top:14px}
+/* Fitxes (diàlegs): <dialog class="sheet-dialog"> amb .sheet-head (títol i ✕), .sheet-part i .sheet-foot */
+dialog.sheet-dialog{width:min(560px,calc(100% - 24px));max-height:calc(100% - 24px);padding:18px;color:var(--tx);background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:auto}
+dialog.sheet-dialog::backdrop{background:#11183180}
+.sheet-close{min-width:0;width:40px;min-height:40px;padding:0;font-size:18px;flex:none}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sheet-head h2{margin:0}
+.sheet-part{border-top:1px solid var(--border);margin-top:14px;padding-top:12px}
+.sheet-part h3{margin:0 0 8px}
+.sheet-foot{border-top:1px solid var(--border);margin-top:14px;padding-top:12px}
+/* Botons d'icona (llapis, impressora…) */
+.icon-button{min-width:0;width:36px;min-height:36px;padding:0}
+.icon-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.icon-button.remove{border-color:var(--red)}
+.icon-button:disabled{opacity:.35}
+
+.whatsapp{color:var(--green);border-color:var(--green)}
+.order-lookup{margin-bottom:12px}
+.order-matches{margin-top:6px;max-height:260px;overflow:auto;border:1px solid var(--border);border-radius:10px}
+.order-matches button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;border:0;border-radius:0;text-align:left}
+.order-matches button+button{border-top:1px solid var(--border)}
+.order-matches button:focus-visible{outline-offset:-3px}
+#order-match-status:empty{display:none}
+#line{margin-top:12px}
+.catalog-line{margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--soft)}
+:root{--draft-highlight:#edf8f1}
+:root[data-theme=dark]{--draft-highlight:#19332e}
+.item.in-draft,.order-matches button.in-draft{background:var(--draft-highlight)}
+.item.in-draft{padding-inline:10px;border-radius:8px}
+.draft-badge{display:inline-block;margin-inline-start:8px;color:var(--green);font-size:13px;font-weight:650}
+.order-matches .draft-badge{margin-inline-start:0}
+#read-catalog button,#confirm-pdf>.actions{margin-top:10px}
+.pdf-rows{max-height:55vh;overflow:auto;margin-top:12px}
+.pdf-row{display:grid;grid-template-columns:5rem minmax(9rem,2fr) repeat(2,minmax(5rem,1fr));gap:8px;padding:10px 0;border-top:1px solid var(--border)}
+.pdf-select{display:flex;align-items:center;align-self:center;white-space:nowrap}
+.pdf-select input{width:18px;min-height:18px}
+@media(max-width:550px){
+  .pdf-row{grid-template-columns:1fr 1fr}
+  .pdf-row label:nth-child(2){grid-column:1/-1;grid-row:2}
+}
+.contact-actions{margin:8px 0 12px}
+.contact-file{position:relative;cursor:pointer}
+.contact-file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.contact-file:focus-within{outline:3px solid #788cf0;outline-offset:2px}
+.recipient-picker{margin-top:10px}
+.recipient-picker form{margin-top:12px}
+.remember-contact{display:flex;align-items:center;gap:8px;margin:12px 0}
+.remember-contact input{width:18px;min-height:18px;flex:none}
+@media(max-width:480px){
+  #line .grid,#catalog-line .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #line .grid>label:first-of-type,#catalog-line .grid>label:first-of-type{grid-column:1/-1}
+}
+
+.order-lines{background:#eaf0ff;border-color:#afbfeb}
+:root[data-theme=dark] .order-lines{background:#202e55;border-color:#516798}
+
+
+.order-list-heading{display:flex;align-items:start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.order-list-heading h2{margin:0}
+.list-mode{gap:6px;padding-inline:10px;white-space:nowrap}
+.list-mode[aria-pressed=true]{background:var(--ln);color:var(--on)}
+.order-send{margin-top:12px}
+.order-category{margin-top:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.order-category h3{margin:0;padding:7px 11px;background:var(--soft);border-radius:11px 11px 0 0;font-size:15px}
+.order-list-row{display:grid;grid-template-columns:minmax(0,1fr) 44px;align-items:start;border-top:1px solid var(--border)}
+.order-list-row.is-ordered{background:var(--soft)}
+.order-toggle,.order-pencil{border:0;border-radius:0;background:transparent}
+.order-toggle{width:100%;min-height:40px;justify-content:start;gap:8px;padding:4px 9px;text-align:start}
+.order-marker{flex:0 0 18px;height:18px;border:1px solid var(--field);border-radius:5px;text-align:center;line-height:16px}
+.is-ordered .order-marker{background:var(--ln);color:var(--on);border-color:var(--ln)}
+.order-item-copy{display:grid;min-width:0;line-height:1.2;gap:1px}
+.order-item-copy strong,.order-item-copy .meta{overflow-wrap:anywhere}
+.order-item-copy .meta{font-weight:400}
+.order-list-row strong{color:var(--red)}
+.order-list-row.is-ordered strong{color:var(--green)}
+.order-pencil{width:44px;padding:0;font-size:21px}
+.order-editor{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:8px 10px 12px}
+.order-editor label:nth-child(3),.order-editor .actions,.order-editor [data-editor-error]{grid-column:1/-1}
+
+.order-list-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:8px;min-width:0;flex:1 1 100%}
+.order-list-filters label{width:100%}
+.order-list-filters select{height:44px;min-height:44px}
+
+#order-dialog{width:min(460px,calc(100% - 24px));max-height:calc(100% - 24px);padding:18px;color:var(--tx);background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow-wrap:anywhere}
+#order-dialog::backdrop{background:#11183180}
+#order-dialog .order-editor{padding:0}
+
+.order-lines .order-lookup{position:sticky;top:0;z-index:4;margin:10px 0 0;padding:6px 0;background:inherit}
+.order-lines.is-searching .order-lookup{box-shadow:0 6px 8px -6px #11183140}
+.order-lines.is-searching [id^=list-]{min-height:100vh}
+.order-lines.hide-filters .order-list-filters{display:none}
+.order-lines .order-list-filters{margin-top:6px}
+.list-tools:not(:has(button:not([hidden]))){display:none}
+/* Cerca comuna de Nova comanda i Articles */
+.article-lookup{display:flex;gap:8px;align-items:end}
+.article-lookup label{flex:1 1 auto;min-width:0}
+.article-lookup button[hidden]{display:none}
+.article-lookup button{min-height:46px}
+
+.catalog-management{margin-bottom:10px}
+.article-merge-choice{display:flex;align-items:center;gap:5px;min-height:44px}
+.article-merge-choice input{width:18px;min-height:18px}
+
+.staff-worker summary{cursor:pointer}
+.staff-worker form{display:flex;flex-wrap:wrap;align-items:end;gap:8px;margin:8px 0}
+.staff-worker form label{flex:1 1 14rem}
+
+@media(max-width:480px){
+  .order-lines{padding:11px}
+  .order-list-heading{display:grid;gap:6px}
+  .order-list-heading h2{font-size:19px;line-height:1.2}
+  .order-list-heading .meta{font-size:13px}
+  .order-list-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px}
+  .order-list-filters label{width:100%;gap:2px;font-size:12px}
+  .order-list-filters select{height:40px;min-height:40px;padding:4px 6px;text-overflow:ellipsis}
+  .list-mode{grid-column:1/-1;justify-self:start;min-height:40px;padding-block:4px;font-size:14px}
+  .order-lines .order-lookup{margin-top:4px;padding:4px 0}
+  .article-lookup{gap:6px}
+  .article-lookup label{gap:2px;font-size:12px}
+  .article-lookup input,.article-lookup button{min-height:42px;padding-block:4px}
+  .order-category{margin-top:8px}
+}
+.order-list-row{grid-template-columns:minmax(0,1fr) auto 44px}
+.order-list-row:not(.is-ordered){grid-template-columns:minmax(0,1fr) 44px}
+.order-steps{display:flex;gap:4px;align-items:center;padding:6px 0}
+.order-step{min-width:0;width:38px;min-height:36px;padding:0;font-size:14px}
+#order-dialog{width:min(560px,calc(100% - 24px))}
+#close-order-dialog{min-width:0;width:40px;min-height:40px;padding:0}
+.sheet-offer{margin-top:10px}
+.invoice-card{margin:0 0 14px}
+.invoice-card>summary{cursor:pointer;font-weight:650}
+.invoice-card form{margin-top:10px}
+.purchase-row{border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:12px 0 0}
+.purchase-row legend{font-weight:650;padding:0 4px}
+.purchase-row.is-discarded{opacity:.6}
+.purchase-row .grid{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+.purchase-article{grid-column:1/-1;display:grid;gap:4px;font-size:14px;color:var(--mu)}
+.article-pick{font-size:16px;color:var(--tx);display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;font-weight:600}
+.article-pick-action{color:var(--ln);font-weight:650;white-space:nowrap}
+.pick-results{display:flex;flex-direction:column;gap:6px;margin-top:12px;max-height:55vh;overflow:auto}
+.pick-results button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;width:100%}
+.pick-results button[aria-current]{border-color:var(--ln);border-width:2px}
+.pick-new{font-weight:650}
+.purchase-row-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
+.purchase-row-actions .meta{flex:1 1 200px;margin:0}
+.match-tag{display:inline-block;font-size:.8em;font-weight:650;border-radius:999px;padding:1px 8px;margin-right:2px}
+.match-tag.is-existing{background:var(--soft);color:var(--green)}
+.match-tag.is-new{background:var(--soft);color:#b26a00}
+.purchase-check{display:flex;align-items:center;gap:6px;color:var(--tx)}
+.purchase-check input{width:auto;min-height:0}
+.purchase-head{width:100%;flex-direction:column;align-items:flex-start;gap:2px;border:0;background:transparent;padding:0;text-align:left}
+.purchase-head:hover{background:transparent}
+.article-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px;border-top:1px solid var(--border);padding:2px 0}
+.article-row.in-draft{padding-inline:6px;border-radius:8px}
+.article-select{width:20px;min-height:20px;margin:0 6px}
+.article-open{display:block;min-width:0;min-height:36px;justify-content:flex-start;border:0;background:transparent;padding:6px 4px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+.article-open:hover{background:var(--soft)}
+.article-open .meta{font-size:14px}
+.catalog-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;border-top:1px solid var(--border);padding:2px 0}
+.catalog-row.with-move{grid-template-columns:auto minmax(0,1fr) auto;background:var(--surface)}
+.drag-handle{min-width:0;width:36px;min-height:36px;padding:0;border:0;background:none;color:var(--mu);cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;display:grid;place-items:center}
+.drag-handle svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.catalog-row.dragging{position:relative;z-index:2;box-shadow:0 6px 18px rgba(0,0,0,.18);border-radius:10px;opacity:.95}
+.catalog-row.dragging .drag-handle{cursor:grabbing}
+.catalog-name{min-width:0;padding:6px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bulk-bar{border:1px solid var(--main-border,var(--border));background:var(--soft);border-radius:12px;padding:12px;margin:10px 0}
+.bulk-bar .actions{margin:8px 0}
+.bulk-bar form{margin-top:8px;align-items:end}
+.bulk-submit{display:flex;align-items:flex-end}
+.catalog-new>summary{cursor:pointer;font-weight:700;font-size:17px}
+.catalog-new[open]>summary{margin-bottom:10px}
+.bulk-log{border:1px solid var(--main-border,var(--border));border-radius:12px;padding:12px;margin:10px 0}
+.bulk-log .row{align-items:center}
+.bulk-log details{margin-top:6px}
+.bulk-log summary{cursor:pointer}
+.bulk-log p{margin:4px 0 0 16px}
+#quick-article label.full{display:grid;margin-bottom:12px}
+#quick-article .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))}
+.order-list-row.just-added{outline:3px solid var(--accent,#7b8cf0);outline-offset:2px;border-radius:10px;transition:outline-color .3s}
+details.order-category>summary{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 12px;background:var(--soft);border-radius:11px;font-weight:700;font-size:15px;cursor:pointer;list-style:none}
+details.order-category>summary::-webkit-details-marker{display:none}
+details.order-category>summary::before{content:'▸';margin-right:4px;transition:transform .15s}
+details.order-category[open]>summary::before{transform:rotate(90deg)}
+details.order-category>summary .group-name{flex:1 1 auto}
+details.order-category>summary .meta{font-weight:400;font-size:13px}
+details.order-category[open]>summary{border-radius:11px 11px 0 0}
+/* Eines comunes de la llista: accions a l'esquerra, «Replega-ho tot» a la dreta */
+.list-tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.list-tools .group-toggle{margin-left:auto}
+.list-extra{margin-top:16px}
+.list-extra .card{margin:0}
+/* Files de la pantalla Articles (mateixa fila que Nova comanda, per marcar) */
+.order-list-row.is-selected{background:var(--soft)}
+.is-selected .order-marker{background:var(--ln);color:var(--on);border-color:var(--ln)}
+.order-list-row.is-selected strong{color:var(--green)}
+.order-list-row.is-select{grid-template-columns:minmax(0,1fr) 44px}
+
+/* Mòbil: botons de la fila d'eines en quadrícula (va al final perquè guanyi a .list-tools de dalt). */
+@media(max-width:480px){
+  .list-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .list-tools button{width:100%;min-height:40px;padding-block:4px;font-size:14px}
+  .list-tools [data-new-article]{grid-column:1;grid-row:1}
+  .list-tools .group-toggle{grid-column:2;grid-row:1;margin-left:0}
+  .list-tools #select-visible-articles{grid-column:1/-1}
+}
+.order-state{display:inline-block;margin-inline-start:6px;color:var(--red);font-size:13px;font-weight:650}
+.order-state.is-sent{color:var(--green)}
+.order-day{margin-top:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
+.order-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--ln);color:var(--on)}
+.order-day-head strong{font-size:17px}
+.order-day-head .meta{color:var(--on);opacity:.85;white-space:nowrap}
+.order-entry{padding:10px 12px;border-top:1px solid var(--border)}
+.order-day-head+.order-entry,.order-day-head+.swipe>.order-entry{border-top:0}
+.order-entry>.actions{margin-top:8px}
+.sheet-name{display:block;margin-bottom:12px}
+.sheet-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
+.purchase-price{margin-bottom:4px}
+.purchase-price:empty{display:none}
+.purchase-price>.meta{align-self:end;margin:0 0 10px}
+.price-stats{display:grid;gap:8px;margin:0 0 8px}
+.price-stats>div{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:6px}
+.price-stats>div:first-child{border-top:0;padding-top:0}
+.price-stats dt{color:var(--mu)}
+.price-stats dd{margin:0;display:grid;justify-items:end;text-align:end}
+
+/* Diàleg «A qui ho demanem?»: un botó per proveïdor */
+.supplier-choice{display:grid;gap:8px;margin-top:10px}
+.supplier-choice button{width:100%;justify-content:flex-start;min-height:48px}
+/* Lliscar (ESTIL.md): cap a l'esquerra elimina (vermell); cap a la dreta arxiva o recupera (blau) */
+/* Paperera */
+.swipe.dragging{position:relative;z-index:2;overflow:visible}
+.swipe.dragging>.catalog-row{box-shadow:0 6px 18px rgba(0,0,0,.18);border-radius:10px;opacity:.95}
+.swipe>.item.swipe-row{padding-bottom:8px}
+
+/* Subcategories a la pantalla Categories: sagnades sota la categoria principal. */
+.catalog-row.subcategory{padding-left:28px}
+.catalog-row.subcategory .article-open strong::before{content:'— ';color:var(--mu)}
+
+.worker-profiles .worker-profile-item{border-top:1px solid var(--border);padding:10px 0}
+.worker-profile-item>summary,.worker-profile-inactive>summary{cursor:pointer;min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.worker-profile-item>summary::before,.worker-profile-inactive>summary::before{content:"+"}
+.worker-profile-item[open]>summary::before,.worker-profile-inactive[open]>summary::before{content:"−"}
+.worker-profile-item>summary strong,.worker-profile-inactive>summary strong{flex:1}
+.worker-profile-item>summary span,.worker-profile-inactive>summary span{color:var(--muted,var(--mu));font-size:14px}
+.worker-profile{padding:12px 0 4px}
+.worker-profile-fields{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));margin-bottom:12px}
+.worker-profile-option{display:flex;align-items:center;gap:8px;margin:10px 0}
+.worker-profile-option input{width:20px;height:20px;min-height:20px;margin:0;flex:none}
+.worker-profiles h3{margin-top:14px}
+
+.worker-contact-actions{margin-bottom:8px}
+.worker-contact-actions label{position:relative;cursor:pointer}
+.worker-contact-actions input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.worker-contact-actions label:focus-within{outline:3px solid #788cf0;outline-offset:2px}
+[data-worker-contact-options] label{margin-bottom:8px}
+
+.worker-contact-actions:empty{display:none}
+/* Aspecte comú de les apps Gesto: requadre principal amb fons blau clar (com «Nova comanda») i blocs blancs a dins. */
+
+.admin-group{border:1px solid var(--border);border-radius:12px;padding:6px 14px 8px;margin:0 0 12px}
+.admin-group legend{padding:0 6px;font-weight:600;font-size:14px}
+.worker-profile-item>summary span{text-align:right}
+#status.error{color:var(--red)}
+
+/* Avisos flotants comuns de les apps Gesto (vegeu ESTIL.md → Avisos i errors). */
+#status:empty{display:none}
+#status{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1000;width:max-content;max-width:min(600px,calc(100% - 24px));margin:0;padding:12px 16px;border-radius:12px;background:var(--surface);color:var(--tx);border:1px solid var(--border);box-shadow:0 8px 28px #11183140;font-weight:600;cursor:pointer}
+#status.error{color:var(--red);border-color:var(--red)}
+
+/* Lliscar (ESTIL.md): cap a l'esquerra elimina (vermell); cap a la dreta arxiva o recupera (blau) */
+.swipe{position:relative;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.swipe>.swipe-bg{position:absolute;inset:0;display:none;align-items:center;padding:0 18px;color:var(--on)}
+.swipe.left>.swipe-bg{display:flex;justify-content:flex-end;background:var(--red)}
+.swipe.right>.swipe-bg{display:flex;justify-content:flex-start;background:var(--ln)}
+.swipe>.swipe-bg svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.swipe>.swipe-row{position:relative}
+#status .undo-button{min-height:32px;margin-inline-start:10px;padding:4px 12px;font-size:14px}
+/* Paperera */
+.trash-list{margin-top:10px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)}
+.trash-list>.meta{padding:12px;margin:0}
+.trash-row{display:flex;flex-direction:column;gap:2px;padding:10px 12px;min-height:44px;justify-content:center}
+.swipe+.swipe>.trash-row{border-top:1px solid var(--border)}
+.trash-row strong,.trash-row .meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Capçalera comuna de les apps Gesto: nom, versió, ☰ Menú i ↪︎ Sortir (ESTIL.md, «Capçalera de l'app» i «Menú»).
+   Font única: si canvies alguna cosa aquí, canvia a totes les apps. Va després del CSS de cada app. */
+.topbar{display:flex;align-items:center;justify-content:space-between;position:relative;gap:12px;margin:0 0 18px;padding:0 0 10px;border:0}
+.topbar .brand{min-width:0;flex:1}
+.topbar .brand h1{margin:0;font-size:clamp(20px,4.5vw,30px);font-weight:700;letter-spacing:-.035em;line-height:1.1;overflow-wrap:anywhere;font-variant:normal}
+.topbar .version{margin-top:5px;font-size:14px;color:var(--mu)}
+.top-actions{display:flex;flex-shrink:0;gap:8px;align-items:center}
+.top-actions>button,.top-actions>.menu-anchor>button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:8px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--surface);color:var(--tx);font:600 15px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;font-variant:normal;white-space:nowrap;cursor:pointer;box-shadow:none}
+.top-actions>button:hover,.top-actions>.menu-anchor>button:hover{background:var(--soft);color:var(--tx);box-shadow:none;filter:none}
+.top-actions button span:first-child{font-size:18px;line-height:1}
+.top-actions [hidden]{display:none!important}
+.menu-anchor{position:relative}
+#menu-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:30;display:block;width:max-content;min-width:200px;max-width:calc(100vw - 24px);background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 30px rgba(40,55,126,.15);padding:10px}
+#menu-panel[hidden]{display:none}
+#menu-panel #tabs{display:grid;gap:6px;margin:0 0 6px}
+#menu-panel #tabs:empty{display:none}
+#menu-panel button{display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:44px;margin:0;padding:9px 15px;border:1px solid var(--ln);border-radius:10px;background:var(--surface);color:var(--tx);font:600 15px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;font-variant:normal;text-align:left;white-space:nowrap;cursor:pointer;box-shadow:none}
+#menu-panel button:hover{background:var(--soft);color:var(--tx);box-shadow:none;filter:none}
+#menu-panel button[aria-current=page],#menu-panel button.on{background:var(--ln);color:var(--on)}
+#menu-panel button[aria-current=page]:hover,#menu-panel button.on:hover{background:var(--ln);color:var(--on);filter:brightness(1.13)}
+@media(max-width:430px){
+  .top-actions>button,.top-actions>.menu-anchor>button{font-size:14px;padding:7px 9px}
+  .topbar .version{font-size:13px}
+}
+/* Mòbil: només les icones, sense vora ni fons; el menú s'ancora a la capçalera. */
+@media(max-width:480px){
+  .topbar{align-items:flex-start;gap:8px;margin-bottom:8px;padding-bottom:4px}
+  .top-actions{gap:4px}
+  .top-actions #menu-toggle,.top-actions #logout{width:44px;min-height:44px;padding:0;border-color:transparent;background:transparent}
+  .top-actions .top-action-label{display:none}
+  .menu-anchor{position:static}
+  #menu-panel{top:100%;right:0}
+}
+.topbar .entorn-proves{color:var(--red);letter-spacing:.04em}
+</style>
+<link rel="manifest" href="./manifest.webmanifest">
+</head>
+<body>
+<main>
+<header class="topbar">
+  <div class="brand"><h1>GestoAdmin</h1><div class="meta version">Backoffice de les apps Gesto · Versió 1.10.1 · <strong class="entorn-proves">PROVES</strong><span id="sync-state" role="status"></span></div></div>
+  <div class="top-actions">
+    <div class="menu-anchor">
+      <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel" hidden><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
+      <div id="menu-panel" hidden>
+        <nav aria-label="Seccions" id="tabs"></nav>
+        <button id="theme" type="button" aria-pressed="false">Mode fosc</button>
+      </div>
+    </div>
+    <button id="logout" type="button" aria-label="Sortir" hidden><span aria-hidden="true">↪︎</span><span class="top-action-label" aria-hidden="true">Sortir</span></button>
+  </div>
+</header>
+<section id="login-panel" class="card">
+<h2>Inicia sessió</h2>
+<p id="login-status" role="status">Carregant l’accés…</p>
+<form id="login-form">
+<div class="grid">
+<label>Correu<input name="email" type="email" autocomplete="username" autocapitalize="none" required></label>
+<label>Contrasenya<input name="password" type="password" autocomplete="current-password" required></label>
+</div>
+<div class="login-actions">
+<button class="primary" value="login">Entra</button>
+<button class="primary" value="register">Crea un compte</button>
+</div>
+<a id="password-reset" href="#reset-panel">He oblidat la contrasenya</a></form>
+<details id="reset-panel" class="item" hidden>
+<summary>Restableix amb un enllaç del correu</summary>
+<form id="reset-link-form">
+<div class="grid">
+<label>Enllaç del correu de restabliment<input name="link" type="url" autocomplete="off" autocapitalize="none" required></label>
+<label>Contrasenya nova<input name="password" type="password" minlength="6" autocomplete="new-password" required></label>
+</div>
+<button class="primary">Desa la contrasenya nova</button>
+</form></details>
+<div class="actions" id="verify-actions" hidden>
+<button id="retry-login">Comprova l’accés</button>
+<button id="resend-verification">Torna a enviar el correu</button>
+</div>
+<form id="verify-link-form" class="item" hidden>
+<label>L’enllaç del correu dona error? Enganxa’l aquí<input name="link" type="url" autocomplete="off" autocapitalize="none" required></label>
+<button type="submit">Verifica el correu</button>
+</form></section>
+<div id="workspace" hidden>
+<p id="status" role="status"></p>
+<section id="content" aria-label="Contingut"></section>
+</div>
+</main>
+<script type="module">
+// Capçalera comuna de les apps Gesto: menú ☰ i mode fosc (ESTIL.md, «Capçalera de l'app» i «Menú»).
+// Font única per a GestoCatalog, GestoTips, GestoAdmin i GestoStock. L'HTML el genera shared/header.mjs.
+// gestoHeader() es pot cridar diverses vegades: només prepara els botons la primera.
+function gestoHeader() {
+  if (gestoHeader.ready) return gestoHeader.ready;
+  const toggle = document.getElementById('menu-toggle');
+  const panel = document.getElementById('menu-panel');
+  const theme = document.getElementById('theme');
+  function setMenu(open) {
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+  }
+  toggle.addEventListener('click', event => {
+    event.stopPropagation();
+    setMenu(panel.hidden);
+  });
+  // Es tanca en tocar fora, amb Esc o en triar una secció.
+  document.addEventListener('click', event => {
+    if (!panel.hidden && !event.target.closest('.menu-anchor')) setMenu(false);
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || panel.hidden) return;
+    setMenu(false);
+    toggle.focus();
+  });
+  panel.addEventListener('click', event => {
+    if (event.target.closest('#tabs button')) setMenu(false);
+  });
+  // Mode fosc: clau `theme` del navegador, comuna a totes les apps (mateix domini).
+  // El <head> ja l'aplica abans de pintar la pàgina; aquí només s'actualitza el botó.
+  function setTheme(dark) {
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    theme.textContent = dark ? 'Mode clar' : 'Mode fosc';
+    theme.setAttribute('aria-pressed', String(dark));
+  }
+  let saved = null;
+  try { saved = localStorage.getItem('theme'); } catch {}
+  setTheme(saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);
+  theme.addEventListener('click', () => {
+    const dark = document.documentElement.dataset.theme !== 'dark';
+    try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch {}
+    setTheme(dark);
+  });
+  gestoHeader.ready = {
+    setMenu,
+    setTheme,
+    showMenu() { toggle.hidden = false; },
+    tabs: document.getElementById('tabs')
+  };
+  return gestoHeader.ready;
+}
+
+// Avisos flotants comuns de les apps Gesto (vegeu ESTIL.md → Avisos i errors). Els fan servir GestoTips, GestoAdmin i GestoStock.
+// Funciona sobre l'element #status: els d'èxit marxen sols als 6 segons; els d'error (classe .error) i els importants (classe .keep) es queden fins que es premen.
+// Si hi ha un <dialog> obert, l'avís s'hi mou perquè no quedi tapat. Els camps obligatoris buits avisen aquí, sense la bombolla del navegador.
+function setupNotices() {
+  const status = document.querySelector('#status');
+  if (!status || status.dataset.notices) return;
+  status.dataset.notices = '1';
+  let timer = 0;
+  // Lloc habitual de l'avís: #workspace (o el <body> si l'app no en té).
+  const home = () => document.querySelector('#workspace') || document.body;
+  const place = () => {
+    const parent = document.querySelector('dialog[open]') || home();
+    if (status.parentElement !== parent) parent.append(status);
+  };
+  new MutationObserver(() => {
+    clearTimeout(timer);
+    const stays = status.classList.contains('error') || status.classList.contains('keep');
+    const title = status.textContent.trim() && stays ? 'Prem per tancar l’avís' : '';
+    if (status.title !== title) status.title = title;
+    if (!status.textContent.trim()) return;
+    place();
+    if (!stays && status.textContent !== 'Desant…') timer = setTimeout(() => { status.textContent = ''; },6000);
+  }).observe(status,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
+  status.addEventListener('click',event => { if (!event.target.closest('[data-undo]')) status.textContent = ''; });
+  document.addEventListener('close',() => {
+    if (status.parentElement !== home()) home().append(status);
+  },true);
+  let invalidShown = false;
+  document.addEventListener('invalid',event => {
+    event.preventDefault();
+    if (invalidShown) return;
+    invalidShown = true;
+    setTimeout(() => { invalidShown = false; },0);
+    const field = event.target;
+    // Nom del camp: l'etiqueta que l'envolta, la <label for> o la que té just abans; si no, aria-label o placeholder.
+    const previous = field.previousElementSibling;
+    const outer = field.closest('label')?.childNodes[0]?.textContent?.trim();
+    const linked = (field.id && document.querySelector('label[for="'+CSS.escape(field.id)+'"]')) || (previous?.tagName === 'LABEL' ? previous : null);
+    const label = outer || linked?.textContent?.trim() || field.getAttribute('aria-label') || field.placeholder || '';
+    field.focus();
+    status.classList.add('error');
+    status.textContent = field.validity.valueMissing
+      ? (field.tagName === 'SELECT' ? 'Tria una opció a «'+label+'».' : 'Omple el camp «'+label+'».')
+      : (label ? 'Revisa el camp «'+label+'». ' : '')+field.validationMessage;
+  },true);
+}
+setupNotices();
+
+// Lliscar per eliminar o arxivar i avís amb «Desfés» (ESTIL.md), comú a GestoCatalog, GestoTips, GestoAdmin i GestoStock.
+// Fila lliscable: swipeOpen(clau, es pot eliminar, es pot arxivar/restaurar, icona de la dreta) + fila amb la classe «swipe-row» + '</div>'.
+// setupSwipe(acció, ocupat): acció(clau, 'left'|'right') retorna (o promet) true si s'ha fet; si no, la fila torna al seu lloc.
+const swipeIcons = {
+  left:'<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>',
+  archive:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="M10 13h4"/></svg>',
+  restore:'<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v5h5"/></svg>'
+};
+function swipeOpen(key, left, right, rightIcon = 'archive') {
+  const attr = String(key).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  return '<div class="swipe" data-swipe="'+attr+'"'+(left ? ' data-left="1"' : '')+(right ? ' data-right="1" data-right-icon="'+rightIcon+'"' : '')+'><div class="swipe-bg" aria-hidden="true"></div>';
+}
+// Avís amb el botó «Desfés» (dura els 6 segons dels avisos d'èxit; si és d'error, es queda fins que es prem).
+function showUndo(message, undo, error = false) {
+  const status = document.querySelector('#status');
+  status.classList.remove('keep');
+  status.classList.toggle('error',error);
+  status.textContent = message;
+  if (!undo) return;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'undo-button';
+  button.dataset.undo = '';
+  button.textContent = 'Desfés';
+  button.addEventListener('click',() => { status.textContent = ''; undo(); },{once:true});
+  status.append(' ',button);
+}
+function setupSwipe(action, isBusy = () => false) {
+  let touch = null;
+  let wheel = null;
+  let quietUntil = 0;
+  let blockClick = 0;
+  function backgroundOf(element) {
+    for (let node = element; node && node !== document.documentElement; node = node.parentElement) {
+      const color = getComputedStyle(node).backgroundColor;
+      if (color && color !== 'transparent' && color !== 'rgba(0, 0, 0, 0)') return color;
+    }
+    return getComputedStyle(document.body).backgroundColor;
+  }
+  function begin(wrap) {
+    const row = wrap.querySelector('.swipe-row');
+    if (getComputedStyle(row).backgroundColor === 'rgba(0, 0, 0, 0)') row.style.background = backgroundOf(wrap.parentElement);
+    row.style.transition = 'none';
+    return {wrap,row,dx:0,width:wrap.offsetWidth || 1};
+  }
+  function move(state, dx) {
+    if (dx < 0 && !state.wrap.dataset.left) dx = 0;
+    if (dx > 0 && !state.wrap.dataset.right) dx = 0;
+    state.dx = dx;
+    state.row.style.transform = dx ? 'translateX('+dx+'px)' : '';
+    state.wrap.classList.toggle('left',dx < 0);
+    state.wrap.classList.toggle('right',dx > 0);
+    const side = dx < 0 ? 'l' : dx > 0 ? 'r' : '';
+    const bg = state.wrap.firstElementChild;
+    if (bg.dataset.icon !== side) {
+      bg.dataset.icon = side;
+      bg.innerHTML = side === 'l' ? swipeIcons.left : side === 'r' ? swipeIcons[state.wrap.dataset.rightIcon] || swipeIcons.archive : '';
+    }
+  }
+  function reset(state) {
+    state.row.style.transition = 'transform .2s';
+    state.row.style.transform = '';
+    setTimeout(() => { state.wrap.classList.remove('left','right'); state.row.style.background = ''; state.row.style.transition = ''; },200);
+  }
+  function end(state) {
+    quietUntil = Date.now()+400;
+    const dir = state.dx <= -state.width/2 ? 'left' : state.dx >= state.width/2 ? 'right' : '';
+    if (!dir) { reset(state); return; }
+    state.row.style.transition = 'transform .18s';
+    state.row.style.transform = 'translateX('+(dir === 'left' ? -state.width : state.width)+'px)';
+    setTimeout(async () => {
+      let ok = false;
+      try { ok = await action(state.wrap.dataset.swipe,dir); } catch { ok = false; }
+      // Si no s'ha pogut fer, la fila torna al seu lloc; l'avís d'error n'explica el motiu.
+      if (!ok && state.wrap.isConnected) reset(state);
+    },180);
+  }
+  // Dit o ratolí: arrossegar la fila.
+  document.addEventListener('pointerdown',event => {
+    if (event.button > 0) return;
+    const wrap = event.target.closest('.swipe');
+    // Els camps i el que porta data-no-swipe (per exemple, la nansa per ordenar) no fan lliscar la fila.
+    if (!wrap || event.target.closest('input,select,textarea,[data-no-swipe]')) return;
+    touch = {wrap,x:event.clientX,y:event.clientY,id:event.pointerId,state:null};
+  });
+  document.addEventListener('pointermove',event => {
+    if (!touch || event.pointerId !== touch.id) return;
+    const dx = event.clientX-touch.x;
+    const dy = event.clientY-touch.y;
+    if (!touch.state) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dy) >= Math.abs(dx) || isBusy()) { touch = null; return; }
+      touch.state = begin(touch.wrap);
+      try { touch.wrap.setPointerCapture(event.pointerId); } catch { /* sense captura */ }
+    }
+    event.preventDefault();
+    move(touch.state,dx);
+  },{passive:false});
+  function release(event) {
+    if (!touch || event.pointerId !== touch.id) return;
+    const state = touch.state;
+    touch = null;
+    if (!state) return;
+    blockClick = Date.now();
+    if (event.type === 'pointercancel') reset(state); else end(state);
+  }
+  document.addEventListener('pointerup',release);
+  document.addEventListener('pointercancel',release);
+  // Després d'arrossegar, no s'obre la fila.
+  document.addEventListener('click',event => {
+    if (Date.now()-blockClick < 400 && event.target.closest('.swipe')) { event.preventDefault(); event.stopImmediatePropagation(); }
+  },true);
+  // Trackpad: lliscar amb dos dits.
+  document.addEventListener('wheel',event => {
+    const wrap = event.target.closest('.swipe');
+    if (!wheel) {
+      if (!wrap || isBusy() || Date.now() < quietUntil || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      wheel = {wrap,state:begin(wrap),dx:0};
+    } else if (wheel.wrap !== wrap && !wheel.wrap.contains(event.target)) return;
+    event.preventDefault();
+    wheel.dx -= event.deltaX;
+    move(wheel.state,wheel.dx);
+    clearTimeout(wheel.timer);
+    wheel.timer = setTimeout(() => { const state = wheel.state; wheel = null; end(state); },120);
+  },{passive:false});
+}
+
+function whatsappPhone(value) {
+  const text = String(value || '').trim();
+  if (!/^\+?[\d\s().-]+$/.test(text)) return '';
+  const digits = text.replace(/\D/g,'');
+  if (digits.startsWith('00')) return whatsappPhone('+'+digits.slice(2));
+  if (!text.startsWith('+') && /^[6789]\d{8}$/.test(digits)) return '34'+digits;
+  return /^[1-9]\d{7,14}$/.test(digits) ? digits : '';
+}
+
+function vCardContact(text) {
+  const entries = text.replace(/\r?\n[ \t]/g,'').split(/\r?\n/);
+  if (entries.filter(line => /^BEGIN:VCARD$/i.test(line.trim())).length !== 1) return null;
+  const values = field => entries.filter(line =>
+    new RegExp('^(?:[\\w-]+\\.)?'+field+'(?:;[^:]*)?:','i').test(line)
+  ).map(line => line.slice(line.indexOf(':')+1)
+    .replace(/\\[nN]/g,' ').replace(/\\([,;\\])/g,'$1').trim()).filter(Boolean);
+  return {
+    name:values('FN')[0] ?? '',
+    tel:values('TEL').map(value => value.replace(/^tel:/i,'')),
+    email:values('EMAIL').map(value => value.replace(/^mailto:/i,'')),
+    uid:values('UID')[0] ?? ''
+  };
+}
+
+function isMobileContactDevice() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+}
+
+function workerContactFromShortcut(text) {
+  const [header,...lines] = text.trim().split(/\r?\n/);
+  if (header !== 'NEXA-CONTACTE') return null;
+  const values = new Map();
+  let field;
+  for (const line of lines) {
+    const match = /^(nom|correu|telèfon)\s*:\s*(.*)$/iu.exec(line);
+    if (match) {
+      field = match[1].toLocaleLowerCase('ca');
+      values.set(field,[match[2]]);
+    } else if (field && line.trim()) {
+      values.get(field).push(line.trim());
+    }
+  }
+  const name = (values.get('nom') ?? []).filter(Boolean).join(' ').trim();
+  const email = (values.get('correu') ?? []).map(value => value.trim()).filter(Boolean);
+  const tel = (values.get('telèfon') ?? []).map(value => value.trim()).filter(Boolean);
+  return name || email.length || tel.length ? {name, email, tel} : null;
+}
+
+function renderAppleContactPicker() {
+  const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (!ios || typeof navigator.contacts?.select === 'function') return '';
+  return '<details class="item" data-worker-ios-panel><summary>Tria de l’agenda de l’iPhone</summary>'+
+    '<p class="meta">Prem «Tria el contacte», tria la persona i torna a aquesta fitxa per enganxar-lo.</p>'+
+    '<a class="button" href="shortcuts://run-shortcut?name=Nexa%20Contacte%202">Tria el contacte</a>'+
+    '<label>Enganxa el contacte<textarea rows="3" data-worker-contact-paste spellcheck="false" autocapitalize="off"></textarea></label>'+
+    '<button type="button" data-worker-apply-paste>Carrega el contacte</button>'+
+    (workerShortcutReady()
+      ? '<p class="meta"><a href="https://jninforner.github.io/NexaTips/Nexa%20Contacte%202.shortcut">Reinstal·la la drecera</a></p></details>'
+      : renderShortcutInstall());
+}
+
+// Un cop la drecera ha funcionat en aquest dispositiu, s'amaguen les instruccions d'instal·lació.
+const WORKER_SHORTCUT_KEY = 'gesto-contact-shortcut-ok';
+function workerShortcutReady() {
+  try { return localStorage.getItem(WORKER_SHORTCUT_KEY) === '1'; } catch { return false; }
+}
+function markWorkerShortcutReady() {
+  try { localStorage.setItem(WORKER_SHORTCUT_KEY,'1'); } catch {}
+}
+
+function renderShortcutInstall() {
+  return '<details class="item"><summary>Instal·la la drecera (només el primer cop)</summary>'+
+    '<p><a class="button" href="https://jninforner.github.io/NexaTips/Nexa%20Contacte%202.shortcut">Instal·la la drecera Nexa Contacte 2</a></p>'+
+    '<p class="meta">O bé configura-la a mà:</p>'+
+    '<ol><li>A l’app Dreceres, crea una drecera que es digui <strong>Nexa Contacte 2</strong>.</li>'+
+    '<li>Afegeix l’acció <strong>Selecciona un contacte</strong> i deixa la selecció múltiple desactivada.</li>'+
+    '<li>Afegeix l’acció <strong>Text</strong>. Copia el format següent i, després de cada etiqueta, insereix la propietat corresponent del contacte seleccionat: nom complet, correu i telèfon.</li>'+
+    '<li>Afegeix <strong>Copia al porta-retalls</strong> amb el text anterior.</li></ol>'+
+    '<pre>NEXA-CONTACTE\nNom: \nCorreu: \nTelèfon: </pre></details></details>';
+}
+
+// Bloc per associar un contacte de l'agenda (Tips i GestoAdmin).
+function renderWorkerContactPicker(worker, escapeHtml) {
+  return '<div class="actions worker-contact-actions">'+
+    (typeof navigator.contacts?.select === 'function' ? '<button type="button" data-worker-contact>Tria de l’agenda</button>' : '')+
+    (isMobileContactDevice() ? '' : '<label class="button">Importa contacte Apple (.vcf)<input type="file" accept=".vcf,text/vcard,text/x-vcard" data-worker-vcard></label>')+'</div>'+
+    renderAppleContactPicker()+
+    '<input type="hidden" name="contactName" value="'+escapeHtml(worker?.contactName ?? '')+'">'+
+    '<input type="hidden" name="contactUid" value="'+escapeHtml(worker?.contactUid ?? '')+'">'+
+    '<div data-worker-contact-options></div><p class="meta" data-worker-contact-status role="status" '+(worker?.contactName ? '' : 'hidden')+'>'+
+    (worker?.contactName ? 'Contacte associat: '+escapeHtml(worker.contactName) : '')+'</p>';
+}
+
+function renderWorkerProfiles(workers, escapeHtml) {
+  const sorted = workers.slice().sort((a,b) => a.name.localeCompare(b.name,'ca'));
+  const form = worker =>
+    '<form class="worker-profile" data-worker-profile="'+escapeHtml(worker?.id ?? '')+'">'+
+    renderWorkerContactPicker(worker,escapeHtml)+
+    '<div class="worker-profile-fields">'+
+    '<label>Nom<input name="name" maxlength="80" value="'+escapeHtml(worker?.name ?? '')+'" required></label>'+
+    '<label>Correu<input name="email" type="email" maxlength="254" value="'+escapeHtml(worker?.email ?? '')+'"></label>'+
+    '<label>Telèfon<input name="phone" type="tel" maxlength="48" value="'+escapeHtml(worker?.phone ?? '')+'"></label></div>'+
+    '<label class="worker-profile-option"><input type="checkbox" name="active" '+(!worker || worker.active ? 'checked' : '')+'> '+(worker && !worker.active ? 'Reactiva per al repartiment de propines' : 'Actiu per al repartiment de propines')+'</label>'+
+    '<label class="worker-profile-option"><input type="checkbox" name="tipsView" '+(worker?.tipsView ? 'checked' : '')+'> Pot consultar el repartiment actual de GestoTips</label>'+
+    '<button class="primary">'+(worker ? 'Desa la fitxa' : 'Afegeix el treballador')+'</button></form>';
+  const active = sorted.filter(worker => worker.active);
+  const inactive = sorted.filter(worker => !worker.active);
+  const renderRow = worker => '<details class="worker-profile-item"><summary><strong>'+escapeHtml(worker.name)+
+    '</strong></summary>'+form(worker)+'</details>';
+  return '<section class="card worker-profiles"><h2>Equip</h2>'+
+    '<details class="worker-profile-item"><summary>Afegeix un treballador</summary>'+form(null)+'</details>'+
+    '<h3>Membres actius</h3>'+
+    (active.length ? active.map(renderRow).join('') : '<p class="meta">Encara no hi ha membres actius.</p>')+'</section>'+
+    (inactive.length ? '<section class="card worker-profiles"><details class="worker-profile-inactive">'+
+      '<summary><strong>Membres inactius</strong><span>'+inactive.length+'</span></summary>'+
+      inactive.map(renderRow).join('')+'</details></section>' : '');
+}
+
+function workerProfilePayload(form) {
+  const fields = form.elements;
+  return {action:'workerProfile',id:form.dataset.workerProfile,name:fields.name.value,email:fields.email.value,
+    phone:fields.phone.value,active:fields.active.checked,tipsView:fields.tipsView.checked,
+    contactName:fields.contactName.value,contactUid:fields.contactUid.value};
+}
+
+
+function bindWorkerContacts(container) {
+  const contactsByForm = new WeakMap();
+
+  function updateContactStatus(form, text) {
+    const status = form.querySelector('[data-worker-contact-status]');
+    status.textContent = text;
+    status.hidden = !text;
+  }
+
+  function setWorkerContactField(form, field, value) {
+    const fields = form.elements;
+    // Només a la fitxa antiga de GestoTips: a GestoAdmin els permisos es revisen a mà.
+    if (!('workerProfile' in form.dataset)) return false;
+    if (field === 'email' && value.toLowerCase() !== fields.email.value.trim().toLowerCase() && fields.tipsView.checked) {
+      fields.tipsView.checked = false;
+      return true;
+    }
+    return false;
+  }
+
+  function fillWorkerContact(form, contact) {
+    const fields = form.elements;
+    if (contact.name && !(form.dataset.workerProfile || form.dataset.user)) fields.name.value = contact.name.trim().slice(0,80);
+    const groups = [
+      ['email','Correu',contact.email || [],254],
+      ['phone','Telèfon',contact.tel || [],48]
+    ];
+    const choices = document.createDocumentFragment();
+    let reviewAccess = false;
+    for (const [field,label,values,limit] of groups) {
+      const options = [...new Set(values.map(value => value.trim().slice(0,limit)).filter(Boolean))];
+      if (options.length === 1) {
+        if (setWorkerContactField(form,field,options[0])) reviewAccess = true;
+        fields[field].value = options[0];
+      }
+      if (options.length < 2) continue;
+      const select = document.createElement('select');
+      select.dataset.workerContactField = field;
+      select.add(new Option('Tria '+label.toLowerCase(),''));
+      for (const value of options) select.add(new Option(value,value));
+      const wrapper = document.createElement('label');
+      wrapper.append(label+' del contacte',select);
+      choices.append(wrapper);
+    }
+    const panel = form.querySelector('[data-worker-contact-options]');
+    panel.querySelectorAll('label:has([data-worker-contact-field])').forEach(label => label.remove());
+    panel.append(choices);
+    fields.contactName.value = (contact.name || contact.email?.[0] || contact.tel?.[0] || '').slice(0,160);
+    fields.contactUid.value = contact.uid ?? '';
+    updateContactStatus(form,'Revisa les dades del contacte i desa la fitxa.'+
+      (reviewAccess ? ' Revisa si vols autoritzar el correu nou a GestoTips.' : ''));
+  }
+
+  container.addEventListener('click',async event => {
+    const applyPaste = event.target.closest('[data-worker-apply-paste]');
+    if (applyPaste) {
+      const form = applyPaste.form;
+      const input = form.querySelector('[data-worker-contact-paste]');
+      const contact = workerContactFromShortcut(input.value) ?? vCardContact(input.value.trim());
+      if (!contact || !(contact.name || contact.email.length || contact.tel.length)) {
+        updateContactStatus(form,'Enganxa el contacte copiat per la drecera Nexa Contacte 2.');
+        return;
+      }
+      fillWorkerContact(form,contact);
+      if (workerContactFromShortcut(input.value)) markWorkerShortcutReady();
+      input.value = '';
+      form.querySelector('[data-worker-ios-panel]').open = false;
+      return;
+    }
+    const picker = event.target.closest('[data-worker-contact]');
+    if (!picker) return;
+    const {form} = picker;
+    try {
+      const [contact] = await navigator.contacts.select(['name','email','tel'],{multiple:false});
+      if (!contact || !form.isConnected) return;
+      form.querySelector('[data-worker-contact-options]').replaceChildren();
+      fillWorkerContact(form,{...contact,name:contact.name?.[0]});
+    } catch (error) {
+      if (form.isConnected && error.name !== 'AbortError') updateContactStatus(form,'No s’ha pogut obrir l’agenda. Pots escriure les dades al formulari.');
+    }
+  });
+
+  container.addEventListener('change',async event => {
+    const input = event.target;
+    if (input.matches('[data-worker-contact-field]') && input.value) {
+      const field = input.dataset.workerContactField;
+      if (setWorkerContactField(input.form,field,input.value))
+        updateContactStatus(input.form,'Revisa si vols autoritzar el correu nou a GestoTips abans de desar.');
+      input.form.elements[field].value = input.value;
+    } else if (input.matches('[data-worker-contact-choice]') && input.value) {
+      const contact = contactsByForm.get(input.form)?.[Number(input.value)];
+      if (contact) fillWorkerContact(input.form,contact);
+    } else if (input.matches('[data-worker-vcard]') && input.files[0]) {
+      const {form} = input;
+      try {
+        const file = input.files[0];
+        if (file.size > 8*1024*1024) throw new Error();
+        const text = await file.text();
+        if (!form.isConnected) return;
+        const contacts = (text.match(/^[ \t]*BEGIN:VCARD[ \t]*\r?$[\s\S]*?^[ \t]*END:VCARD[ \t]*\r?$/gim) || [])
+          .map(vCardContact).filter(contact => contact && (contact.name || contact.email.length || contact.tel.length));
+        if (!contacts.length) throw new Error();
+        const panel = form.querySelector('[data-worker-contact-options]');
+        panel.replaceChildren();
+        if (contacts.length === 1) {
+          fillWorkerContact(form,contacts[0]);
+          return;
+        }
+        contactsByForm.set(form,contacts);
+        const select = document.createElement('select');
+        select.dataset.workerContactChoice = '';
+        select.add(new Option('Tria una persona',''));
+        contacts.forEach((contact,index) => select.add(new Option(
+          [contact.name,contact.email[0]].filter(Boolean).join(' · ') || contact.tel[0],String(index))));
+        const label = document.createElement('label');
+        label.append('Contacte de l’agenda',select);
+        panel.append(label);
+        select.focus();
+        updateContactStatus(form,'Tria la persona que vols associar.');
+      } catch {
+        if (form.isConnected) updateContactStatus(form,'Tria un fitxer .vcf vàlid de fins a 8 MB.');
+      } finally {
+        input.value = '';
+      }
+    }
+  });
+}
+
+// GestoAdmin: backoffice de les apps Gesto.
+// Cada secció del backoffice és una entrada de `sections`: per afegir-ne una de nova
+// (configuració d'una app, paràmetres…) n'hi ha prou amb afegir-hi una entrada amb el seu render.
+function mountApp(request, initialData) {
+  const content = document.querySelector('#content');
+  const status = document.querySelector('#status');
+  let data = initialData;
+  let busy = false;
+  let openId = null;
+
+  // Menú ☰ (Usuaris, Paperera) i mode fosc: shared/header.js, comú a totes les apps Gesto.
+  const header = gestoHeader();
+  header.showMenu();
+
+  const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]);
+
+  function notify(message, error = false) {
+    status.textContent = message;
+    status.className = error ? 'error' : '';
+  }
+
+  const catalogFlags = ['catalogPurchases','catalogOrder','catalogHistory','catalogArticles','catalogSuppliers','catalogCategories','catalogUnits'];
+  const stockFlags = ['stockView','stockBuy','stockSell','stockHistory','stockLabels','stockConfig'];
+  const isPrincipal = user => Boolean(user?.email) && user.email === data.ownerEmail;
+  const isAdmin = user => isPrincipal(user) || user?.role === 'administrador';
+
+  function summaryMeta(user) {
+    if (isPrincipal(user)) return 'Administrador principal';
+    if (!user.active) return 'Inactiu';
+    if (isAdmin(user)) return 'Administrador';
+    const apps = [catalogFlags.some(flag => user[flag]) && 'Catalog', (user.tipsView || user.tipsPot || user.tipsPoints || user.tipsHistory) && 'Tips', stockFlags.some(flag => user[flag]) && 'Stock'].filter(Boolean);
+    return apps.length ? apps.join(' · ') : 'Sense accés';
+  }
+
+  function form(user) {
+    const key = user?.id ?? '';
+    const principal = isPrincipal(user);
+    const self = Boolean(user?.email) && user.email === data.me.email && !data.me.principal;
+    const locked = principal || self;
+    const admin = isAdmin(user);
+    const active = !user || user.active;
+    if (principal && !data.me.principal) return '<p class="meta">La fitxa de l’administrador principal no es pot modificar.</p>';
+    const check = (name, on, label, extra = '') =>
+      '<label class="worker-profile-option"><input type="checkbox" name="'+name+'" '+(on ? 'checked' : '')+extra+'> '+label+'</label>';
+    const adminNote = '<p class="meta" data-admin-only'+(admin ? '' : ' hidden')+'>Com a administrador, hi té accés complet.</p>';
+    return '<form class="worker-profile" data-user="'+escape(key)+'">'+
+      renderWorkerContactPicker(user,escape)+
+      '<div class="worker-profile-fields">'+
+      '<label>Nom<input name="name" maxlength="80" value="'+escape(user?.name)+'" required></label>'+
+      '<label>Correu<input name="email" type="email" maxlength="254" autocapitalize="none" value="'+escape(user?.email)+'"'+(locked ? ' readonly' : '')+'></label>'+
+      '<label>Telèfon<input name="phone" type="tel" maxlength="48" value="'+escape(user?.phone)+'"></label></div>'+
+      '<fieldset class="admin-group"><legend>Estat i tipus d’usuari</legend>'+
+      check('active',active,'Actiu (treballa a l’empresa i participa en el repartiment de propines)',locked ? ' disabled' : '')+
+      '<p class="meta">Un usuari inactiu no pot entrar a cap app, però es guarden els seus permisos per si torna.</p>'+
+      '<label class="worker-profile-option"><input type="radio" name="role" value="treballador" '+(admin ? '' : 'checked')+(locked ? ' disabled' : '')+'> Treballador: només pot fer el que li marquis</label>'+
+      '<label class="worker-profile-option"><input type="radio" name="role" value="administrador" '+(admin ? 'checked' : '')+(locked ? ' disabled' : '')+'> Administrador: ho pot fer tot a totes les apps i entrar a GestoAdmin</label>'+
+      (principal ? '<p class="meta">És l’administrador principal. No es pot canviar.</p>' : '')+
+      (self ? '<p class="meta">Ets tu. Per canviar el teu tipus, el teu estat o el teu correu, demana-ho a un altre administrador.</p>' : '')+
+      '</fieldset>'+
+      '<fieldset class="admin-group"><legend>GestoCatalog</legend>'+adminNote+
+      '<div data-worker-only'+(admin ? ' hidden' : '')+'>'+
+      '<p class="meta">Pot entrar a GestoCatalog si té almenys una opció marcada.</p>'+
+      check('catalogPurchases',user?.catalogPurchases,'Albarans: llegir i desar albarans')+
+      check('catalogOrder',user?.catalogOrder,'Nova comanda: preparar i enviar comandes')+
+      check('catalogHistory',user?.catalogHistory,'Historial de comandes')+
+      check('catalogArticles',user?.catalogArticles,'Articles: crear, editar, importar, arxivar i fusionar')+
+      check('catalogSuppliers',user?.catalogSuppliers,'Proveïdors')+
+      check('catalogCategories',user?.catalogCategories,'Categories')+
+      check('catalogUnits',user?.catalogUnits,'Unitats')+'</div>'+
+      '</fieldset>'+
+      '<fieldset class="admin-group"><legend>GestoTips</legend>'+
+      adminNote+
+      '<div data-worker-only'+(admin ? ' hidden' : '')+'>'+
+      check('tipsView',user?.tipsView,'Consultar el repartiment actual')+
+      check('tipsPot',user?.tipsPot,'Entrar l’import del pot')+
+      check('tipsPoints',user?.tipsPoints,'Marcar els punts de cada treballador')+
+      check('tipsHistory',user?.tipsHistory,'Consultar l’històric de propines')+'</div>'+
+      '</fieldset>'+
+      '<fieldset class="admin-group"><legend>GestoStock</legend>'+
+      adminNote+
+      '<div data-worker-only'+(admin ? ' hidden' : '')+'>'+
+      check('stockView',user?.stockView,'Veure l’inventari i les partides')+
+      check('stockBuy',user?.stockBuy,'Registrar compres, importar albarans i editar partides')+
+      check('stockSell',user?.stockSell,'Registrar vendes')+
+      check('stockHistory',user?.stockHistory,'Consultar l’historial de vendes')+
+      check('stockLabels',user?.stockLabels,'Imprimir etiquetes')+
+      check('stockConfig',user?.stockConfig,'Catàleg d’articles, proveïdors i paràmetres')+'</div>'+
+      '</fieldset>'+
+      '<div class="actions"><button class="primary">'+(user ? 'Desa' : 'Afegeix l’usuari')+'</button>'+
+      // Botó Elimina de la fitxa: sense confirmació i amb Desfés (ESTIL.md).
+      (user && !locked ? '<button type="button" class="remove" data-delete-user="'+escape(user.id)+'">Elimina</button>' : '')+'</div></form>';
+  }
+
+  // Fila lliscable (ESTIL.md): cap a l'esquerra elimina (va a la Paperera); cap a la dreta desactiva (o torna a activar).
+  // L'administrador principal i un mateix no es poden eliminar ni desactivar.
+  function row(user) {
+    const locked = isPrincipal(user) || (Boolean(user.email) && user.email === data.me.email);
+    return swipeOpen('user:'+user.id,!locked,!locked,user.active ? 'archive' : 'restore')+
+      '<details class="worker-profile-item swipe-row" data-row="'+escape(user.id)+'"'+(openId === user.id ? ' open' : '')+'>'+
+      '<summary><strong>'+escape(user.name)+'</strong><span>'+escape(summaryMeta(user))+'</span></summary>'+form(user)+'</details></div>';
+  }
+
+  let section = 'users';
+  const sections = {
+    users:{label:'Usuaris', render:renderUsers},
+    trash:{label:'Paperera', render:renderTrash}
+  };
+
+  function render() {
+    header.tabs.innerHTML = Object.entries(sections).map(([key,item]) => '<button type="button" data-section="'+key+'"'+(key === section ? ' aria-current="page"' : '')+'>'+escape(item.label)+'</button>').join('');
+    content.innerHTML = sections[section].render();
+  }
+
+  function renderUsers() {
+    const users = data.users.slice().sort((a,b) => a.name.localeCompare(b.name,'ca',{sensitivity:'base'}));
+    const current = users.filter(user => user.active || isPrincipal(user));
+    const inactive = users.filter(user => !current.includes(user));
+    const admins = current.filter(isAdmin);
+    const workers = current.filter(user => !isAdmin(user));
+    return '<section class="card worker-profiles main-card"><h2>Usuaris</h2>'+
+      '<p class="meta">Aquí decideixes qui pot entrar a cada app i què hi pot fer. Tothom entra amb el seu correu i la seva contrasenya.</p>'+
+      '<p class="meta">Llisca un usuari cap a la dreta per desactivar-lo (o tornar-lo a activar) o cap a l’esquerra per eliminar-lo.</p>'+
+      '<details class="worker-profile-item"'+(openId === '' ? ' open' : '')+' data-row=""><summary><strong>Afegeix un usuari</strong></summary>'+form(null)+'</details>'+
+      '<h3>Administradors</h3>'+
+      (data.ownerEmail && !admins.some(isPrincipal)
+        ? '<div class="item"><strong>'+escape(data.ownerEmail)+'</strong> <span class="meta">· Administrador principal (fixat al servidor)</span></div>' : '')+
+      admins.map(row).join('')+
+      '<h3>Treballadors</h3>'+(workers.length ? workers.map(row).join('') : '<p class="meta">Encara no hi ha treballadors actius.</p>')+
+      '</section>'+
+      (inactive.length ? '<section class="card worker-profiles"><details class="worker-profile-inactive"'+(inactive.some(user => user.id === openId) ? ' open' : '')+'>'+
+        '<summary><strong>Inactius</strong><span>'+inactive.length+'</span></summary>'+inactive.map(row).join('')+'</details></section>' : '')+
+      (data.unlinked.length ? '<section class="card"><h2>Accessos a GestoCatalog sense fitxa</h2>'+
+        '<p class="meta">Aquests correus poden entrar a GestoCatalog però no tenen fitxa d’usuari. Llisca’n un cap a l’esquerra per retirar-li l’accés.</p>'+
+        data.unlinked.map(email => swipeOpen('access:'+email,true,false)+'<div class="row item swipe-row"><span>'+escape(email)+'</span></div></div>').join('')+
+        '</section>' : '');
+  }
+
+  // Paperera: usuaris eliminats i accessos retirats. Cap a la dreta es recupera; cap a l'esquerra s'esborra definitivament.
+  function renderTrash() {
+    const items = data.trash || [];
+    const rows = items.map(item => {
+      const left = Math.max(0,Math.ceil((Date.parse(item.deleted_at)+30*864e5-Date.now())/864e5));
+      const when = left <= 0 ? 's’esborrarà avui' : left === 1 ? 's’esborrarà demà' : 's’esborrarà d’aquí a '+left+' dies';
+      const meta = [item.kind === 'access' ? 'Accés' : 'Usuari',item.detail,
+        'eliminat el '+new Date(item.deleted_at).toLocaleDateString('ca-ES',{dateStyle:'medium',timeZone:'Europe/Madrid'}),when].filter(Boolean).join(' · ');
+      return swipeOpen('trash:'+item.id,true,true,'restore')+'<div class="trash-row swipe-row" title="'+escape(item.name+' · '+meta)+'"><strong>'+escape(item.name)+'</strong>'+
+        '<span class="meta">'+escape(meta)+'</span></div></div>';
+    }).join('');
+    return '<section class="card main-card"><h2>Paperera</h2><p class="meta">Llisca un element cap a la dreta per recuperar-lo o cap a l’esquerra per esborrar-lo definitivament. Passats 30 dies, s’esborren sols.</p>'+
+      '<div class="trash-list">'+(rows || '<p class="meta">La paperera és buida.</p>')+'</div></section>';
+  }
+
+  // Desa i, si va bé, pot oferir «Desfés» (undo rep la resposta del servidor). Retorna si s'ha fet.
+  async function send(payload, button, success, undo) {
+    if (busy) return false;
+    busy = true;
+    if (button) button.disabled = true;
+    notify('Desant…');
+    try {
+      const result = await request(payload);
+      data = result;
+      openId = null;
+      render();
+      if (undo) showUndo(success,() => undo(result)); else notify(success);
+      return true;
+    } catch (error) {
+      notify(error.message || 'No s’ha pogut desar.',true);
+      if (button?.isConnected) button.disabled = false;
+      return false;
+    } finally {
+      busy = false;
+    }
+  }
+
+  content.addEventListener('change',event => {
+    if (event.target.name !== 'role') return;
+    const form = event.target.form;
+    const admin = form.elements.role.value === 'administrador';
+    form.querySelectorAll('[data-worker-only]').forEach(element => { element.hidden = admin; });
+    form.querySelectorAll('[data-admin-only]').forEach(element => { element.hidden = !admin; });
+  });
+
+  content.addEventListener('toggle',event => {
+    if (event.target.matches?.('details[data-row]') && event.target.open) openId = event.target.dataset.row;
+  },true);
+
+  header.tabs.addEventListener('click',event => {
+    const tab = event.target.closest('[data-section]');
+    if (!tab) return;
+    section = tab.dataset.section;
+    openId = null;
+    notify('');
+    render();
+    window.scrollTo(0,0);
+  });
+
+  content.addEventListener('click',event => {
+    const remove = event.target.closest('[data-delete-user]');
+    if (remove) void deleteUser(remove.dataset.deleteUser,remove);
+  });
+
+  const userName = id => data.users.find(user => user.id === id)?.name || '';
+  function deleteUser(id, button) {
+    const name = userName(id);
+    return send({action:'deleteUser',id},button,'S’ha eliminat «'+name+'».',
+      result => send({action:'restoreTrash',ids:[result.trashId]},null,'S’ha recuperat «'+name+'».'));
+  }
+  function setActive(id, active) {
+    const name = userName(id);
+    return send({action:'setActive',id,active},null,'S’ha '+(active ? 'activat' : 'desactivat')+' «'+name+'».',
+      () => send({action:'setActive',id,active:!active},null,'S’ha desfet el canvi de «'+name+'».'));
+  }
+  // Lliscar: usuaris, accessos sense fitxa i Paperera.
+  setupSwipe(async (key, dir) => {
+    const split = key.indexOf(':');
+    const kind = key.slice(0,split);
+    const id = key.slice(split+1);
+    if (busy) return false;
+    if (kind === 'user') {
+      const user = data.users.find(item => item.id === id);
+      if (!user) return false;
+      return dir === 'left' ? deleteUser(id) : setActive(id,!user.active);
+    }
+    if (kind === 'access') {
+      return send({action:'revokeAccess',email:id},null,'S’ha retirat l’accés de «'+id+'».',
+        result => send({action:'restoreTrash',ids:[result.trashId]},null,'S’ha tornat l’accés a «'+id+'».'));
+    }
+    if (kind === 'trash') {
+      const item = (data.trash || []).find(entry => entry.id === id);
+      if (!item) return false;
+      if (dir === 'right') {
+        return send({action:'restoreTrash',ids:[id]},null,'S’ha recuperat «'+item.name+'».',
+          () => send(item.kind === 'access' ? {action:'revokeAccess',email:item.item_id} : {action:'deleteUser',id:item.item_id},null,'Ha tornat a la Paperera.'));
+      }
+      return send({action:'purgeTrash',ids:[id]},null,'S’ha esborrat definitivament «'+item.name+'».',
+        () => send({action:'unpurgeTrash',ids:[id]},null,'«'+item.name+'» torna a ser a la Paperera.'));
+    }
+    return false;
+  },() => busy);
+
+  content.addEventListener('submit',event => {
+    event.preventDefault();
+    const form = event.target;
+    const fields = form.elements;
+    const role = [...form.querySelectorAll('input[name=role]')].find(input => input.checked)?.value ?? 'treballador';
+    void send({
+      action:'saveUser', id:form.dataset.user, name:fields.name.value, email:fields.email.value, phone:fields.phone.value,
+      contactName:fields.contactName.value, contactUid:fields.contactUid.value,
+      role, active:fields.active.checked, ...Object.fromEntries(catalogFlags.map(flag => [flag,fields[flag].checked])), tipsView:fields.tipsView.checked, tipsPot:fields.tipsPot.checked, tipsPoints:fields.tipsPoints.checked, tipsHistory:fields.tipsHistory.checked,
+      ...Object.fromEntries(stockFlags.map(flag => [flag,fields[flag].checked]))
+    },event.submitter,'Desat.');
+  });
+
+  bindWorkerContacts(content);
+  render();
+  notify('');
+}
+
+function localAdminRequest(body) {
+  return fetch('/GestoAdmin/api',{method:body ? 'POST' : 'GET',cache:'no-store',
+    headers:body ? {'Content-Type':'application/json'} : {},body:body ? JSON.stringify(body) : undefined})
+    .then(async response => {
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      return result;
+    });
+}
+
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js';
+import {
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  sendEmailVerification, sendPasswordResetEmail, signOut, reload, checkActionCode, applyActionCode, verifyPasswordResetCode, confirmPasswordReset
+} from 'https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js';
+
+async function startStaffApp(apiOrigin, mountApp, apiPath = '/api', firebaseAppName = 'tracacomandes', appLabel = 'GestoCatalog') {
+  const panel = document.querySelector('#login-panel');
+  const form = document.querySelector('#login-form');
+  const message = document.querySelector('#login-status');
+  const actions = document.querySelector('#verify-actions');
+  const repair = document.querySelector('#verify-link-form');
+  const resetPanel = document.querySelector('#reset-panel');
+  const resetForm = document.querySelector('#reset-link-form');
+  const logout = document.querySelector('#logout');
+  const workspace = document.querySelector('#workspace');
+  let auth;
+  let mounted = false;
+  let busy = false;
+  const emailAction = new URL(location.href);
+  const incomingMode = emailAction.searchParams.get('mode');
+  let actionMode = ['verifyEmail','resetPassword'].includes(incomingMode) && emailAction.searchParams.get('oobCode') ? incomingMode : '';
+  if (actionMode) history.replaceState(null,'',location.pathname);
+
+  function show(text) {
+    message.textContent = text;
+  }
+
+  function errorMessage(error) {
+    switch (error.code) {
+      case 'auth/invalid-credential': return 'El correu o la contrasenya no són correctes.';
+      case 'auth/email-already-in-use': return 'Aquest correu ja té compte. Inicia sessió o restableix la contrasenya.';
+      case 'auth/weak-password': return 'Tria una contrasenya d’almenys sis caràcters.';
+      case 'auth/too-many-requests': return 'Massa intents. Torna-ho a provar més tard.';
+      default: return error.status ? error.message : 'No hi ha connexió amb el servei d’accés. Torna-ho a provar.';
+    }
+  }
+
+  async function request(body) {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) throw Object.assign(new Error('Torna a iniciar sessió.'),{status:401});
+    const headers = {Authorization:'Bearer '+token};
+    if (body) headers['Content-Type'] = 'application/json';
+    const response = await fetch(apiOrigin+apiPath,{method:body ? 'POST' : 'GET',headers,
+      body:body ? JSON.stringify(body) : undefined,cache:'no-store',credentials:'omit'});
+    const result = await response.json();
+    if (!response.ok) throw Object.assign(new Error(result.error),{status:response.status});
+    return result;
+  }
+
+  async function enter(user) {
+    form.hidden = Boolean(user);
+    resetPanel.hidden = Boolean(user);
+    actions.hidden = !user;
+    repair.hidden = !user || user.emailVerified;
+    logout.hidden = !user;
+    if (!user) {
+      show('');
+      return;
+    }
+    show('Comprovant l’accés…');
+    try {
+      const data = await request();
+      if (auth.currentUser?.uid !== user.uid || mounted) return;
+      mounted = true;
+      panel.hidden = true;
+      workspace.hidden = false;
+      mountApp(request,data);
+    } catch (error) {
+      document.querySelector('#resend-verification').hidden = user.emailVerified;
+      show(errorMessage(error));
+    }
+  }
+
+  async function withFeedback(operation) {
+    if (busy) return;
+    busy = true;
+    try { await operation(); }
+    catch (error) { show(errorMessage(error)); }
+    finally { busy = false; }
+  }
+
+  try {
+    const response = await fetch(apiOrigin+'/auth-config',{cache:'no-store',credentials:'omit'});
+    if (!response.ok) throw new Error('Firebase configuration unavailable');
+    // GestoCatalog manté el nom 'tracacomandes' perquè la sessió sobrevisqui al canvi de nom.
+    auth = getAuth(initializeApp(await response.json(),firebaseAppName));
+    auth.languageCode = 'ca';
+  } catch {
+    show('L’accés de l’equip no està disponible. Torna-ho a provar més tard.');
+    form.hidden = true;
+    resetPanel.hidden = true;
+    return;
+  }
+
+  const emailField = form.elements.email;
+  form.addEventListener('submit',event => {
+    event.preventDefault();
+    void withFeedback(async () => {
+      const email = emailField.value.trim();
+      const password = form.elements.password.value;
+      if (event.submitter?.value === 'register') {
+        const {user} = await createUserWithEmailAndPassword(auth,email,password);
+        await sendEmailVerification(user);
+        show('T’hem enviat un correu de verificació. Obre’l i torna aquí per continuar.');
+      } else {
+        await signInWithEmailAndPassword(auth,email,password);
+      }
+      form.reset();
+    });
+  });
+
+  function emailActionCode(value, mode) {
+    try {
+      const link = new URL(value.trim());
+      if (((link.origin === 'https://'+auth.app.options.authDomain && link.pathname === '/__/auth/action') ||
+           (link.origin === 'https://jninforner.github.io' && ['/GestoCatalog/','/GestoComandes/','/NexaComandes/','/tracacomandes/'].includes(link.pathname))) && link.searchParams.get('mode') === mode) {
+        return link.searchParams.get('oobCode');
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+
+  resetForm.addEventListener('submit',event => {
+    event.preventDefault();
+    void withFeedback(async () => {
+      const code = emailActionCode(resetForm.elements.link.value,'resetPassword');
+      if (!code) {
+        show('Enganxa l’enllaç complet del correu de restabliment de contrasenya de '+appLabel+'.');
+        return;
+      }
+      try {
+        const email = await verifyPasswordResetCode(auth,code);
+        await confirmPasswordReset(auth,code,resetForm.elements.password.value);
+        resetForm.reset();
+        resetForm.elements.link.closest('label').hidden = false;
+        resetPanel.open = false;
+        if (actionMode) {
+          actionMode = '';
+          if (auth.currentUser) await signOut(auth);
+          await enter(null);
+        }
+        emailField.value = email;
+        form.elements.password.value = '';
+        form.elements.password.focus();
+        show('Contrasenya desada. Ja pots entrar amb la nova.');
+      } catch (error) {
+        resetForm.elements.password.value = '';
+        if (['auth/invalid-action-code','auth/expired-action-code'].includes(error.code)) {
+          show('Aquest enllaç ha caducat o ja s’ha utilitzat. Demana’n un de nou amb «He oblidat la contrasenya».');
+        } else {
+          throw error;
+        }
+      }
+    });
+  });
+
+  document.querySelector('#password-reset').onclick = event => {
+    event.preventDefault();
+    void withFeedback(async () => {
+      if (!emailField.reportValidity()) return;
+      await sendPasswordResetEmail(auth,emailField.value.trim());
+      show('Si existeix un compte amb aquest correu, rebràs un enllaç per restablir la contrasenya.');
+    });
+  };
+
+  document.querySelector('#retry-login').onclick = () => withFeedback(async () => {
+    if (!auth.currentUser) return;
+    await reload(auth.currentUser);
+    if (!auth.currentUser) return;
+    await auth.currentUser.getIdToken(true);
+    await enter(auth.currentUser);
+  });
+
+  document.querySelector('#resend-verification').onclick = () => withFeedback(async () => {
+    if (!auth.currentUser) return;
+    await sendEmailVerification(auth.currentUser);
+    show('T’hem tornat a enviar el correu de verificació.');
+  });
+
+  repair.addEventListener('submit',event => {
+    event.preventDefault();
+    void withFeedback(async () => {
+      const user = auth.currentUser;
+      if (!user && actionMode !== 'verifyEmail') return;
+      const code = emailActionCode(repair.elements.link.value,'verifyEmail');
+      if (!code) {
+        show('Enganxa l’enllaç complet del correu de verificació de '+appLabel+'.');
+        return;
+      }
+      try {
+        const info = await checkActionCode(auth,code);
+        if (info.operation !== 'VERIFY_EMAIL' || (user && actionMode !== 'verifyEmail' && info.data.email?.toLowerCase() !== user.email?.toLowerCase())) {
+          show('Aquest enllaç correspon a un altre compte.');
+          return;
+        }
+        await applyActionCode(auth,code);
+        repair.reset();
+        actionMode = '';
+        if (user && info.data.email?.toLowerCase() === user.email?.toLowerCase()) {
+          await reload(user);
+          await user.getIdToken(true);
+          await enter(user);
+        } else {
+          if (user) await signOut(auth);
+          await enter(null);
+          emailField.value = info.data.email || '';
+          show('Correu verificat. Ja pots iniciar sessió.');
+        }
+      } catch (error) {
+        if (['auth/invalid-action-code','auth/expired-action-code'].includes(error.code)) {
+          show('L’enllaç ha caducat o ja s’ha utilitzat. Prem «Comprova l’accés» o demana un correu nou.');
+        } else {
+          throw error;
+        }
+      }
+    });
+  });
+
+  logout.onclick = () => withFeedback(async () => {
+    await signOut(auth);
+    location.reload();
+  });
+
+  if (actionMode) {
+    form.hidden = true;
+    resetPanel.hidden = actionMode !== 'resetPassword';
+    resetPanel.open = !resetPanel.hidden;
+    repair.hidden = actionMode !== 'verifyEmail';
+    const current = resetPanel.hidden ? repair : resetForm;
+    current.elements.link.value = emailAction.href;
+    current.elements.link.closest('label').hidden = true;
+    show(actionMode === 'resetPassword' ? 'Tria una contrasenya nova.' : 'Prem el botó per confirmar el correu.');
+  }
+
+  onAuthStateChanged(auth,user => {
+    if (actionMode) return;
+    if (mounted && !user) location.reload();
+    else if (!mounted) void enter(user);
+  });
+}
+
+startStaffApp(location.hostname === "jninforner.github.io" ? "https://gesto-apps-proves.jninforner.workers.dev" : location.origin,mountApp,"/GestoAdmin/api","gestoadmin","GestoAdmin");
+</script>
+</body>
+</html>
