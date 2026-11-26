@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <title>GestoCatalog</title>
-<link rel="icon" type="image/png" href="./icon.png?v=1.41.1">
-<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.41.1">
+<link rel="icon" type="image/png" href="./icon.png?v=1.42.0">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon.png?v=1.42.0">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}catch(e){}</script>
 <style>/* Colors de totes les apps Gesto, en mode clar i fosc (ESTIL.md, «Colors i tipografia»).
    Font única: si canvies un color aquí, canvia a totes les apps. */
@@ -209,6 +209,7 @@ dialog.sheet-dialog::backdrop{background:#11183180}
 .pick-results button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;width:100%}
 .pick-results button[aria-current]{border-color:var(--ln);border-width:2px}
 .pick-new{font-weight:650}
+.line-article{margin-top:6px;font-size:.9rem;padding:4px 10px}
 .purchase-row-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between}
 .purchase-row-actions .meta{flex:1 1 200px;margin:0}
 .match-tag{display:inline-block;font-size:.8em;font-weight:650;border-radius:999px;padding:1px 8px;margin-right:2px}
@@ -385,7 +386,7 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 <body>
 <main>
 <header class="topbar">
-  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.41.1 · <strong class="entorn-proves">PROVES</strong><span id="sync-state" role="status"></span></div></div>
+  <div class="brand"><h1>GestoCatalog</h1><div class="meta version">Versió 1.42.0 · <strong class="entorn-proves">PROVES</strong><span id="sync-state" role="status"></span></div></div>
   <div class="top-actions">
     <div class="menu-anchor">
       <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel" hidden><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
@@ -2551,11 +2552,27 @@ async function fileToBase64(file) {
 }
 
 // ---- Triar l'article d'una línia de l'albarà (diàleg amb cercador) ----
+// També serveix per corregir l'article d'una línia d'un albarà desat (pickSaved).
 let pickRow = -1;
+let pickSaved = null;
+function pickerRow() {
+  if (pickSaved) return pickSaved.row;
+  return pickRow >= 0 ? invoiceReview?.rows[pickRow] : null;
+}
 function openArticlePicker(i) {
   syncInvoiceReview(document.querySelector('#purchase-review'));
   pickRow = i;
-  const row = invoiceReview.rows[i];
+  pickSaved = null;
+  showArticlePicker(invoiceReview.rows[i]);
+}
+function openSavedArticlePicker(purchaseId, position) {
+  const line = (data.purchaseLines || []).find(item => item.purchase_id === purchaseId && item.position === position);
+  if (!line) return;
+  pickRow = -1;
+  pickSaved = {purchaseId, position, row:{name:line.name, articleId:line.article_id, newName:''}};
+  showArticlePicker(pickSaved.row);
+}
+function showArticlePicker(row) {
   let dialog = document.querySelector('#order-dialog');
   if (!dialog) {
     dialog = document.createElement('dialog');
@@ -2572,7 +2589,7 @@ function openArticlePicker(i) {
   if (!dialog.open) dialog.showModal();
 }
 function pickerResults(text) {
-  const row = invoiceReview.rows[pickRow];
+  const row = pickerRow();
   const key = searchKey(text);
   const words = key.split(/\s+/).filter(Boolean);
   const all = data.articles.filter(item => !item.archived);
@@ -2587,6 +2604,16 @@ function pickerResults(text) {
   return create+(list || '<p class="meta">Cap article del catàleg coincideix.</p>')+(found.length > 60 ? '<p class="meta">Escriu més per veure’n menys.</p>' : '');
 }
 function choosePickedArticle(articleId, newName) {
+  if (pickSaved) {
+    const {purchaseId, position, row} = pickSaved;
+    pickSaved = null;
+    document.querySelector('#order-dialog')?.close();
+    if (articleId && articleId === row.articleId) return;
+    const name = articleId ? byId('articles',articleId)?.name : newName;
+    save({action:'purchaseLineArticle',purchaseId,position,articleId,newArticle:articleId ? '' : newName},null,null,
+      () => 'Línia corregida: ara és «'+name+'».');
+    return;
+  }
   const row = invoiceReview.rows[pickRow];
   if (row.articleId !== articleId) { row.perPack = null; row.priceUnitId = defaultPriceUnit(row,articleId); }
   row.articleId = articleId;
@@ -2596,7 +2623,7 @@ function choosePickedArticle(articleId, newName) {
   render();
 }
 document.addEventListener('input',event => {
-  if (event.target.id !== 'pick-search' || pickRow < 0) return;
+  if (event.target.id !== 'pick-search' || !pickerRow()) return;
   const box = document.querySelector('#pick-results');
   if (box) box.innerHTML = pickerResults(event.target.value);
 });
@@ -2896,7 +2923,9 @@ function purchasesView() {
         (openPurchase === purchase.id ? items.map(line => '<div class="item"><strong>'+escape(byId('articles',line.article_id)?.name || line.name)+'</strong>'+
           '<div class="meta">'+[escape(line.name), line.quantity !== null ? quantityFormat.format(line.quantity)+' '+escape(line.unit) : '',
             line.unit_price !== null ? moneyFormat.format(line.unit_price) : '', line.total !== null ? moneyFormat.format(line.total) : '',
-            stockLabel[line.stock_status] || ''].filter(Boolean).join(' · ')+'</div></div>').join('') : '')+'</div></div>';
+            stockLabel[line.stock_status] || ''].filter(Boolean).join(' · ')+'</div>'+
+          (line.stock_status === 'done' ? '' : '<button type="button" class="line-article" data-no-swipe data-fix-line="'+escape(purchase.id)+'" data-fix-position="'+line.position+'">Canvia l’article</button>')+
+          '</div>').join('') : '')+'</div></div>';
     }).join('') || '<p class="meta">Encara no s’ha desat cap albarà.</p>')+'</section>')+'</article>';
 }
 
@@ -3081,6 +3110,8 @@ document.addEventListener('click',async event => {
     showNextInvoice();
     notify('');
     render();
+  } else if (target.fixLine) {
+    openSavedArticlePicker(target.fixLine,Number(target.fixPosition));
   } else if (target.purchase) {
     openPurchase = openPurchase === target.purchase ? '' : target.purchase;
     render();
