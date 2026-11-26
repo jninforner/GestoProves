@@ -278,23 +278,28 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 }
 .order-state{display:inline-block;margin-inline-start:6px;color:var(--red);font-size:13px;font-weight:650}
 .order-state.is-sent{color:var(--green)}
-.order-day{margin-top:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
-.order-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--ln);color:var(--on)}
-.order-day-head strong{font-size:17px}
-.order-day-head .meta{color:var(--on);opacity:.85;white-space:nowrap}
-/* Historial: cada comanda és una targeta separada dins del dia; vora esquerra vermella (pendent) o verda (enviada). */
-.order-day{background:var(--soft)}
-.order-day>.swipe{margin:8px;border-radius:10px}
-.order-entry{padding:10px 12px;border:1px solid var(--border);border-left:5px solid var(--red);border-radius:10px;background:var(--surface)}
-.order-entry.is-sent-order{border-left-color:var(--green)}
-.order-entry.is-open{border-top-color:var(--ln);border-right-color:var(--ln);border-bottom-color:var(--ln)}
-.order-summary>.actions{margin-top:8px}
-/* Missatges d'una comanda oberta: un requadre per proveïdor, amb els seus botons a dins. */
-.order-messages{display:grid;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
-.order-message{padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--soft)}
-.order-message h3{margin:0 0 4px;font-size:17px}
-.order-message textarea{background:var(--surface)}
-.order-message>.actions{margin-top:8px}
+/* Historial: mateix estil que les partides i l'inventari de GestoStock. Una fila d'una línia per comanda
+   («hora · detalls», estat a la dreta); la comanda oberta i el seu detall queden junts sobre fons destacat. */
+.history-day h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.history-day h3 .meta{font-weight:400;font-size:13px}
+.history-order{border-top:1px solid var(--border);background:var(--surface)}
+.history-day>.swipe:last-child>.history-order{border-radius:0 0 11px 11px}
+.history-order.is-open{background:var(--soft);box-shadow:inset 4px 0 0 var(--ln)}
+.history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;padding-right:10px}
+.history-open{display:block;width:100%;min-width:0;min-height:44px;border:0;border-radius:0;background:transparent;color:var(--tx);padding:6px 4px 6px 12px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400;font-size:16px;box-shadow:none}
+.history-open:not(:disabled):hover{background:transparent;color:var(--tx);box-shadow:none}
+.history-open::before{content:'▸ ';color:var(--mu)}
+.history-open[aria-expanded=true]::before{content:'▾ '}
+.history-open b{font-weight:650}
+.history-open .meta{font-size:14px}
+.history-row .order-state{margin:0;white-space:nowrap}
+.history-detail{padding:0 12px 12px}
+.history-detail>.actions{margin-top:0}
+.history-supplier{margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.history-supplier-head{display:flex;justify-content:space-between;align-items:center;gap:4px 8px;flex-wrap:wrap;margin-bottom:6px}
+.history-supplier-head b{font-size:16px}
+.history-supplier-head .order-state{margin:0}
+.history-supplier>.actions{margin-top:8px}
 .sheet-name{display:block;margin-bottom:12px}
 .sheet-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
 .purchase-price{margin-bottom:4px}
@@ -2437,24 +2442,27 @@ function history() {
   const days = Map.groupBy(orders,([, lines]) => orderDayKey(lines[0].created_at));
   return '<article class="card main-card"><h2>Historial de comandes</h2>'+toggle+
     (orders.length ? '<p class="meta">Llisca una comanda cap a l’esquerra per eliminar-la. Es pot recuperar des de la Paperera durant 30 dies.</p>' : '')+
-    ([...days].map(([key, dayOrders]) => '<section class="order-day"><div class="order-day-head"><div><strong>'+escape(orderDayTitle(key))+'</strong>'+
-      '<div class="meta">'+escape(orderDayDate(key))+'</div></div><span class="meta">'+dayOrders.length+' '+(dayOrders.length === 1 ? 'comanda' : 'comandes')+'</span></div>'+
+    ([...days].map(([key, dayOrders]) => '<section class="order-category history-day"><h3><span>'+escape(orderDayTitle(key))+
+      ' <span class="meta">· '+escape(orderDayDate(key))+'</span></span><span class="meta">'+dayOrders.length+' '+(dayOrders.length === 1 ? 'comanda' : 'comandes')+'</span></h3>'+
       dayOrders.map(([id, lines]) => {
+      // Mateix estil que les partides i l'inventari de GestoStock: una fila d'una línia («hora · detalls») amb l'estat a la dreta;
+      // en tocar-la, s'obre a sota (fons destacat) amb els botons de la comanda i un requadre per proveïdor.
       const groups = Map.groupBy(lines,line => line.supplier_id);
       const sent = [...groups.keys()].filter(supplier => sentInfo(id,supplier)).length;
       const done = sent === groups.size;
-      const state = done ? '<span class="order-state is-sent">✓ Enviada</span>' :
-        '<span class="order-state">Pendent d’enviar'+(sent ? ' · '+sent+' de '+groups.size+' enviats' : '')+'</span>';
+      const stateLabel = done ? '✓ Enviada' : sent ? sent+' de '+groups.size+' enviats' : 'Pendent';
       const mine = lines[0].author_email === me;
-      // Cada comanda és una targeta pròpia (vora esquerra vermella si està pendent, verda si està enviada); en obrir-la,
-      // cada proveïdor surt dins d'un requadre amb els seus botons, perquè quedi clar de quina comanda i de quin proveïdor són.
       const open = id === openOrder;
-      return swipeOpen('order:'+id,true,false)+'<div class="order-entry swipe-row'+(done ? ' is-sent-order' : '')+(open ? ' is-open' : '')+'"><div class="order-summary"><div><strong>'+escape(orderDayShort(key))+' · '+escape(orderTimeFormat.format(new Date(lines[0].created_at)))+'</strong> '+state+'<div class="meta">'+
-        lines.length+' '+(lines.length === 1 ? 'línia' : 'línies')+' · '+groups.size+' '+(groups.size === 1 ? 'proveïdor' : 'proveïdors')+
-        '</div>'+(mine ? '' : '<div class="meta">Feta per '+escape(authorName(lines[0].author_email))+'</div>')+'</div>'+
-        '<div class="actions"><button data-order="'+escape(id)+'" aria-expanded="'+open+'">'+(open ? 'Amaga els missatges' : 'Mostra els missatges')+'</button>'+
-        (data.permissions?.order !== false ? '<button data-restore-order="'+escape(id)+'">'+(groups.size > 1 ? 'Recupera-ho tot' : 'Recupera per editar')+'</button>' : '')+'</div>'+
-        '</div>'+(open ? '<div class="order-messages">'+[...groups.values()].map(messageCard).join('')+'</div>' : '')+'</div></div>';
+      const time = orderTimeFormat.format(new Date(lines[0].created_at));
+      const meta = lines.length+' '+(lines.length === 1 ? 'línia' : 'línies')+' · '+groups.size+' '+(groups.size === 1 ? 'proveïdor' : 'proveïdors')+
+        (mine ? '' : ' · '+authorName(lines[0].author_email));
+      const restore = data.permissions?.order !== false
+        ? '<div class="actions"><button data-restore-order="'+escape(id)+'">'+(groups.size > 1 ? 'Recupera-ho tot' : 'Recupera per editar')+'</button></div>' : '';
+      return swipeOpen('order:'+id,true,false)+'<div class="history-order swipe-row'+(open ? ' is-open' : '')+'">'+
+        '<div class="history-row"><button type="button" class="history-open" data-order="'+escape(id)+'" aria-expanded="'+open+'" title="'+escape(time+' · '+meta)+'">'+
+        '<b>'+escape(time)+'</b><span class="meta"> · '+escape(meta)+'</span></button>'+
+        '<span class="order-state'+(done ? ' is-sent' : '')+'">'+escape(stateLabel)+'</span></div>'+
+        (open ? '<div class="history-detail">'+restore+[...groups.values()].map(messageCard).join('')+'</div>' : '')+'</div></div>';
     }).join('')+'</section>').join('') || empty(all.size ? 'No has fet cap comanda.' : 'Encara no hi ha comandes desades.'))+'</article>';
 }
 
@@ -2578,10 +2586,6 @@ function orderDayTitle(key) {
 function orderDayDate(key) {
   return orderDayFormat.format(new Date(key+'T12:00:00Z'));
 }
-function orderDayShort(key) {
-  const [, month, day] = key.split('-');
-  return Number(day)+'/'+Number(month);
-}
 
 function contactControls() {
   return '<div class="contact-actions actions">'+
@@ -2704,17 +2708,19 @@ function messageCard(lines) {
     '<button class="primary" type="submit">Obre WhatsApp</button></form></details>' :
     '<a class="button whatsapp" href="'+escape(whatsappLink(phone,message))+'">Obre WhatsApp</a>';
   const sent = sentInfo(supplier.order_id,supplier.supplier_id);
-  const sentControls = sent
-    ? '<div class="row"><span class="order-state is-sent">✓ Enviat el '+escape(dateFormat.format(new Date(sent.sent_at)))+'</span>'+
-      '<button data-order-sent="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'" data-sent="0">Desmarca</button></div>'
-    : '<div class="row"><span class="order-state">Pendent d’enviar</span>'+
-      '<button class="primary" data-order-sent="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'" data-sent="1">Marca com a enviat</button></div>';
+  const state = sent
+    ? '<span class="order-state is-sent">✓ Enviat el '+escape(dateFormat.format(new Date(sent.sent_at)))+'</span>'
+    : '<span class="order-state">Pendent d’enviar</span>';
+  const sentButton = sent
+    ? '<button data-order-sent="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'" data-sent="0">Desmarca</button>'
+    : '<button class="primary" data-order-sent="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'" data-sent="1">Marca com a enviat</button>';
   // Comanda amb diversos proveïdors: cada proveïdor es pot recuperar per separat.
   const several = new Set(data.lines.filter(line => line.order_id === supplier.order_id).map(line => line.supplier_id)).size > 1;
   const restore = several && data.permissions?.order !== false
     ? '<button data-restore-order="'+escape(supplier.order_id)+'" data-supplier="'+escape(supplier.supplier_id)+'">Recupera per editar</button>' : '';
-  return '<section class="order-message"><h3>'+escape(supplier.supplier)+'</h3>'+sentControls+'<label>Missatge<textarea readonly rows="'+Math.min(18,message.split('\n').length+1)+'">'+escape(message)+'</textarea></label>'+
-    '<div class="actions"><button data-copy>Copia el missatge</button>'+restore+
+  return '<section class="history-supplier"><div class="history-supplier-head"><b>'+escape(supplier.supplier)+'</b>'+state+'</div>'+
+    '<label>Missatge<textarea readonly rows="'+Math.min(18,message.split('\n').length+1)+'">'+escape(message)+'</textarea></label>'+
+    '<div class="actions">'+sentButton+'<button data-copy>Copia el missatge</button>'+restore+
     (!phone && current ? '<a href="'+escape(whatsappLink('',message))+'">Tria dins de WhatsApp</a>' : '')+'</div>'+chooser+'</section>';
 }
 

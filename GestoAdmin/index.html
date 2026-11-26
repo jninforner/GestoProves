@@ -278,23 +278,28 @@ details.order-category[open]>summary{border-radius:11px 11px 0 0}
 }
 .order-state{display:inline-block;margin-inline-start:6px;color:var(--red);font-size:13px;font-weight:650}
 .order-state.is-sent{color:var(--green)}
-.order-day{margin-top:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
-.order-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:var(--ln);color:var(--on)}
-.order-day-head strong{font-size:17px}
-.order-day-head .meta{color:var(--on);opacity:.85;white-space:nowrap}
-/* Historial: cada comanda és una targeta separada dins del dia; vora esquerra vermella (pendent) o verda (enviada). */
-.order-day{background:var(--soft)}
-.order-day>.swipe{margin:8px;border-radius:10px}
-.order-entry{padding:10px 12px;border:1px solid var(--border);border-left:5px solid var(--red);border-radius:10px;background:var(--surface)}
-.order-entry.is-sent-order{border-left-color:var(--green)}
-.order-entry.is-open{border-top-color:var(--ln);border-right-color:var(--ln);border-bottom-color:var(--ln)}
-.order-summary>.actions{margin-top:8px}
-/* Missatges d'una comanda oberta: un requadre per proveïdor, amb els seus botons a dins. */
-.order-messages{display:grid;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
-.order-message{padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--soft)}
-.order-message h3{margin:0 0 4px;font-size:17px}
-.order-message textarea{background:var(--surface)}
-.order-message>.actions{margin-top:8px}
+/* Historial: mateix estil que les partides i l'inventari de GestoStock. Una fila d'una línia per comanda
+   («hora · detalls», estat a la dreta); la comanda oberta i el seu detall queden junts sobre fons destacat. */
+.history-day h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.history-day h3 .meta{font-weight:400;font-size:13px}
+.history-order{border-top:1px solid var(--border);background:var(--surface)}
+.history-day>.swipe:last-child>.history-order{border-radius:0 0 11px 11px}
+.history-order.is-open{background:var(--soft);box-shadow:inset 4px 0 0 var(--ln)}
+.history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;padding-right:10px}
+.history-open{display:block;width:100%;min-width:0;min-height:44px;border:0;border-radius:0;background:transparent;color:var(--tx);padding:6px 4px 6px 12px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400;font-size:16px;box-shadow:none}
+.history-open:not(:disabled):hover{background:transparent;color:var(--tx);box-shadow:none}
+.history-open::before{content:'▸ ';color:var(--mu)}
+.history-open[aria-expanded=true]::before{content:'▾ '}
+.history-open b{font-weight:650}
+.history-open .meta{font-size:14px}
+.history-row .order-state{margin:0;white-space:nowrap}
+.history-detail{padding:0 12px 12px}
+.history-detail>.actions{margin-top:0}
+.history-supplier{margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.history-supplier-head{display:flex;justify-content:space-between;align-items:center;gap:4px 8px;flex-wrap:wrap;margin-bottom:6px}
+.history-supplier-head b{font-size:16px}
+.history-supplier-head .order-state{margin:0}
+.history-supplier>.actions{margin-top:8px}
 .sheet-name{display:block;margin-bottom:12px}
 .sheet-pair{grid-template-columns:repeat(2,minmax(0,1fr))}
 .purchase-price{margin-bottom:4px}
