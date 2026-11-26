@@ -300,9 +300,9 @@ label.req-mark::after{margin-left:0}
 </style>
 </head>
 <body>
-<div id="login" style="position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px"><div class="card" style="width:100%;max-width:420px"><h1>GestoStock</h1><p class="mu">Versió 1.23.0</p><p>Introdueix les teves dades per accedir a GestoStock.</p><form id="loginForm" style="display:block"><label>Correu electrònic</label><input id="email" type="email" autocomplete="username" required><label style="margin-top:12px">Contrasenya</label><input id="password" type="password" autocomplete="current-password" required><button class="f" style="width:100%;margin-top:16px">Entrar</button></form></div></div>
+<div id="login" style="position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px"><div class="card" style="width:100%;max-width:420px"><h1>GestoStock</h1><p class="mu">Versió 1.24.0</p><p>Introdueix les teves dades per accedir a GestoStock.</p><form id="loginForm" style="display:block"><label>Correu electrònic</label><input id="email" type="email" autocomplete="username" required><label style="margin-top:12px">Contrasenya</label><input id="password" type="password" autocomplete="current-password" required><button class="f" style="width:100%;margin-top:16px">Entrar</button></form></div></div>
 <main><header class="topbar">
-  <div class="brand"><h1>GestoStock</h1><div class="meta version">Versió 1.23.0 · <strong class="entorn-proves">PROVES</strong><span id="sync-state" role="status"></span></div></div>
+  <div class="brand"><h1>GestoStock</h1><div class="meta version">Versió 1.24.0 · <strong class="entorn-proves">PROVES</strong><span id="sync-state" role="status"></span></div></div>
   <div class="top-actions">
     <div class="menu-anchor">
       <button id="menu-toggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu-panel"><span aria-hidden="true">☰</span><span class="top-action-label" aria-hidden="true">Menú</span></button>
@@ -416,6 +416,97 @@ function gestoHeader() {
   };
   return gestoHeader.ready;
 }
+
+// Camps decimals amb coma (ESTIL.md, «Números decimals»). Comú a totes les apps Gesto (va amb shared/header.js).
+// Safari de l'iPhone mostra la tecla «.» als camps type="number" encara que l'iPhone estigui en format 1.234,56.
+// Per això els camps decimals (type="number" amb step="any", step amb decimals o inputmode="decimal") passen a
+// type="text" inputmode="decimal": el teclat és el de l'iPhone (coma), el punt es canvia sol per una coma i
+// el codi de les apps continua llegint `value`/`valueAsNumber`/FormData amb punt, com abans.
+(function gestoDecimalFields() {
+  if (typeof document === 'undefined' || window.gestoDecimalReady) return;
+  window.gestoDecimalReady = true;
+  const native = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  const toDot = text => String(text ?? '').trim().replace(/\s/g, '').replace(',', '.');
+  const toComma = text => String(text ?? '').replace('.', ',');
+
+  const isDecimal = input => {
+    if (input.type !== 'number' || input.dataset.decimal !== undefined) return false;
+    if (input.inputMode === 'numeric') return false;
+    const step = input.getAttribute('step') || '';
+    return input.inputMode === 'decimal' || step === 'any' || step.includes('.');
+  };
+
+  function check(input) {
+    const text = toDot(native.get.call(input));
+    let message = '';
+    if (text !== '') {
+      const number = Number(text);
+      const min = input.dataset.min, max = input.dataset.max;
+      if (!/^-?(\d+\.?\d*|\.\d+)$/.test(text) || !Number.isFinite(number)) message = 'Escriu un número (amb coma per als decimals).';
+      else if (min !== undefined && min !== '' && number < Number(min)) message = 'Ha de ser com a mínim ' + toComma(min) + '.';
+      else if (max !== undefined && max !== '' && number > Number(max)) message = 'Ha de ser com a màxim ' + toComma(max) + '.';
+    }
+    input.setCustomValidity(message);
+  }
+
+  function convert(input) {
+    if (!isDecimal(input)) return;
+    const current = native.get.call(input);
+    if (input.hasAttribute('min')) input.dataset.min = input.getAttribute('min');
+    if (input.hasAttribute('max')) input.dataset.max = input.getAttribute('max');
+    input.dataset.decimal = '';
+    input.type = 'text';
+    input.inputMode = 'decimal';
+    input.autocomplete = 'off';
+    // El valor per al codi va amb punt; el que es veu, amb coma.
+    Object.defineProperty(input, 'value', {
+      configurable: true,
+      get() { return toDot(native.get.call(this)); },
+      set(value) { native.set.call(this, toComma(value)); check(this); }
+    });
+    Object.defineProperty(input, 'valueAsNumber', {
+      configurable: true,
+      get() { const text = this.value; return text === '' ? NaN : Number(text); },
+      set(number) { this.value = Number.isFinite(number) ? String(number) : ''; }
+    });
+    native.set.call(input, toComma(current));
+    check(input);
+  }
+
+  function scan(root) {
+    if (root.matches?.('input[type=number]')) convert(root);
+    root.querySelectorAll?.('input[type=number]').forEach(convert);
+  }
+
+  // En escriure, el punt es canvia per una coma (sense moure el cursor).
+  document.addEventListener('input', event => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || input.dataset.decimal === undefined) return;
+    const text = native.get.call(input);
+    if (text.includes('.')) {
+      const start = input.selectionStart, end = input.selectionEnd;
+      native.set.call(input, text.replace(/\./g, ','));
+      try { input.setSelectionRange(start, end); } catch (error) {}
+    }
+    check(input);
+  }, true);
+
+  // new FormData(form): els camps decimals s'envien amb punt, com abans.
+  document.addEventListener('formdata', event => {
+    for (const input of event.target.elements || []) {
+      if (input.dataset?.decimal !== undefined && input.name && !input.disabled) event.formData.set(input.name, input.value);
+    }
+  }, true);
+
+  scan(document);
+  new MutationObserver(records => {
+    for (const record of records) {
+      if (record.type === 'attributes') convert(record.target);
+      else record.addedNodes.forEach(node => { if (node.nodeType === 1) scan(node); });
+    }
+  }).observe(document.documentElement, {childList: true, subtree: true, attributes: true, attributeFilter: ['type']});
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => scan(document));
+})();
 
 // Avisos flotants comuns de les apps Gesto (vegeu ESTIL.md → Avisos i errors). Els fan servir GestoCatalog, GestoTips, GestoAdmin i GestoStock.
 // Funciona sobre l'element #status: els d'èxit marxen sols als 6 segons; els d'error (classe .error) i els importants (classe .keep) es queden fins que es premen.
